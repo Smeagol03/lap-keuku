@@ -140,14 +140,14 @@ export default function Sidebar() {
                 to={item.href}
                 className={({ isActive }) =>
                   cn(
-                    'flex flex-col items-center gap-1 px-3 py-2 text-xs',
+                    'flex flex-col items-center gap-0.5 px-2 py-2 text-xs',
                     isActive
                       ? 'text-primary'
                       : 'text-muted-foreground'
                   )
                 }
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-auto w-4" />
                 <span className="text-[10px]">{item.title}</span>
               </NavLink>
             </li>
