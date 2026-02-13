@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://laporan-keuangan-sand.vercel.app/sitemap.xml
+# If there are private routes (behind authentication), keep them out of sitemap.xml
+# Update the sitemap URL above to your production domain if different.
