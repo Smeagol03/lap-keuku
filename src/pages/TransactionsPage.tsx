@@ -13,6 +13,8 @@ import {
 } from '@/hooks/useTransactions';
 import { useCategories } from '@/hooks/useCategories';
 import TransactionFormDialog from '@/components/features/transactions/TransactionFormDialog';
+import { SkeletonList } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import type { Transaction } from '@/types';
 
 const formatCurrency = (amount: number) => {
@@ -36,7 +38,7 @@ export default function TransactionsPage() {
   });
 
   const { data: categories } = useCategories();
-  const { data, isLoading } = useTransactionsPaginated(page, 10, {
+  const { data, isLoading, isError } = useTransactionsPaginated(page, 10, {
     startDate: filters.startDate || undefined,
     endDate: filters.endDate || undefined,
     type: filters.type as 'income' | 'expense' | undefined,
@@ -83,14 +85,14 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Transaksi</h1>
           <p className="text-muted-foreground">
             Kelola pemasukan dan pengeluaran Anda
           </p>
         </div>
-        <Button onClick={handleCreate}>
+        <Button onClick={handleCreate} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Tambah Transaksi
         </Button>
@@ -102,7 +104,7 @@ export default function TransactionsPage() {
           <CardTitle className="text-base">Filter</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <div className="grid gap-2">
               <Label htmlFor="startDate">Dari Tanggal</Label>
               <Input
@@ -161,21 +163,33 @@ export default function TransactionsPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-center py-8 text-muted-foreground">Memuat transaksi...</p>
+            <SkeletonList items={5} />
+          ) : isError ? (
+            <EmptyState
+              icon="file"
+              title="Gagal memuat data"
+              description="Terjadi kesalahan saat memuat transaksi. Silakan coba lagi."
+            />
           ) : transactions.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">
-              Belum ada transaksi. Klik tombol "Tambah Transaksi" untuk memulai.
-            </p>
+            <EmptyState
+              icon="inbox"
+              title="Belum ada transaksi"
+              description="Mulai catat keuangan Anda dengan menambahkan transaksi pertama."
+              action={{
+                label: 'Tambah Transaksi',
+                onClick: handleCreate,
+              }}
+            />
           ) : (
             <div className="space-y-2">
               {transactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent transition-colors gap-4"
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                         transaction.type === 'income'
                           ? 'bg-green-100 text-green-600'
                           : 'bg-red-100 text-red-600'
@@ -183,17 +197,17 @@ export default function TransactionsPage() {
                     >
                       {transaction.type === 'income' ? '+' : '-'}
                     </div>
-                    <div>
-                      <p className="font-medium">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">
                         {transaction.category?.name ?? 'Tanpa Kategori'}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground truncate">
                         {transaction.description || '-'}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
+                  <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-4">
+                    <div className="text-left sm:text-right">
                       <p
                         className={`font-semibold ${
                           transaction.type === 'income'
@@ -208,7 +222,7 @@ export default function TransactionsPage() {
                         {format(new Date(transaction.date), 'dd MMM yyyy')}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -268,8 +282,8 @@ export default function TransactionsPage() {
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle>Konfirmasi Hapus</CardTitle>
             </CardHeader>
@@ -277,10 +291,11 @@ export default function TransactionsPage() {
               <p className="text-muted-foreground mb-4">
                 Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.
               </p>
-              <div className="flex justify-end gap-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
                 <Button
                   variant="outline"
                   onClick={() => setDeleteConfirm(null)}
+                  className="w-full sm:w-auto"
                 >
                   Batal
                 </Button>
@@ -288,6 +303,7 @@ export default function TransactionsPage() {
                   variant="destructive"
                   onClick={() => handleDelete(deleteConfirm)}
                   disabled={deleteMutation.isPending}
+                  className="w-full sm:w-auto"
                 >
                   {deleteMutation.isPending ? 'Menghapus...' : 'Hapus'}
                 </Button>

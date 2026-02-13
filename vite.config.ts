@@ -18,4 +18,15 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor'; // Memisahkan semua library luar ke file vendor.js
+          }
+        },
+      },
+    },
+  },
 })

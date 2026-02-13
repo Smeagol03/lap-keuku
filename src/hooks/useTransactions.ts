@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   getTransactions,
   getTransactionsPaginated,
@@ -10,7 +11,7 @@ import {
   getMonthlyData,
   type TransactionFilters,
 } from '@/services/transactionService';
-import type { TransactionFormData } from '@/types';
+import type { Transaction, TransactionFormData } from '@/types';
 
 export function useTransactions(filters?: TransactionFilters) {
   return useQuery({
@@ -43,7 +44,49 @@ export function useCreateTransaction() {
 
   return useMutation({
     mutationFn: createTransaction,
+    onMutate: async (newTransaction) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['transactions'] });
+
+      // Snapshot the previous value
+      const previousTransactions = queryClient.getQueryData<Transaction[]>(['transactions']);
+
+      // Optimistically update to the new value
+      if (previousTransactions) {
+        const optimisticTransaction: Transaction = {
+          id: `temp-${Date.now()}`,
+          user_id: '',
+          category_id: newTransaction.category_id,
+          type: newTransaction.type,
+          amount: newTransaction.amount,
+          description: newTransaction.description ?? null,
+          date: newTransaction.date,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          category: undefined,
+        };
+        queryClient.setQueryData<Transaction[]>(
+          ['transactions'],
+          [optimisticTransaction, ...previousTransactions]
+        );
+      }
+
+      return { previousTransactions };
+    },
+    onError: (error, _newTransaction, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousTransactions) {
+        queryClient.setQueryData(['transactions'], context.previousTransactions);
+      }
+      toast.error('Gagal menambahkan transaksi', {
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan',
+      });
+    },
     onSuccess: () => {
+      toast.success('Transaksi berhasil ditambahkan');
+    },
+    onSettled: () => {
+      // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
@@ -56,7 +99,36 @@ export function useUpdateTransaction() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<TransactionFormData> }) =>
       updateTransaction(id, data),
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['transactions'] });
+
+      const previousTransactions = queryClient.getQueryData<Transaction[]>(['transactions']);
+
+      if (previousTransactions) {
+        queryClient.setQueryData<Transaction[]>(
+          ['transactions'],
+          previousTransactions.map((t) =>
+            t.id === id
+              ? { ...t, ...data, amount: data.amount ?? t.amount }
+              : t
+          )
+        );
+      }
+
+      return { previousTransactions };
+    },
+    onError: (error, _variables, context) => {
+      if (context?.previousTransactions) {
+        queryClient.setQueryData(['transactions'], context.previousTransactions);
+      }
+      toast.error('Gagal mengupdate transaksi', {
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan',
+      });
+    },
     onSuccess: () => {
+      toast.success('Transaksi berhasil diupdate');
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
@@ -68,7 +140,32 @@ export function useDeleteTransaction() {
 
   return useMutation({
     mutationFn: deleteTransaction,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['transactions'] });
+
+      const previousTransactions = queryClient.getQueryData<Transaction[]>(['transactions']);
+
+      if (previousTransactions) {
+        queryClient.setQueryData<Transaction[]>(
+          ['transactions'],
+          previousTransactions.filter((t) => t.id !== id)
+        );
+      }
+
+      return { previousTransactions };
+    },
+    onError: (error, _id, context) => {
+      if (context?.previousTransactions) {
+        queryClient.setQueryData(['transactions'], context.previousTransactions);
+      }
+      toast.error('Gagal menghapus transaksi', {
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan',
+      });
+    },
     onSuccess: () => {
+      toast.success('Transaksi berhasil dihapus');
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },

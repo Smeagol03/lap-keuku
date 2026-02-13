@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowDownLeft, ArrowUpRight, Wallet, TrendingUp, TrendingDown } from 'lucide-react';
 import { useDashboardSummary } from '@/hooks/useTransactions';
 import { Link } from 'react-router-dom';
+import { SkeletonCard } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('id-ID', {
@@ -13,13 +15,37 @@ const formatCurrency = (amount: number) => {
 };
 
 export default function DashboardPage() {
-  const { data: summary, isLoading } = useDashboardSummary();
+  const { data: summary, isLoading, isError } = useDashboardSummary();
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Memuat data...</p>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Memuat data...
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <EmptyState
+        icon="file"
+        title="Gagal memuat data"
+        description="Terjadi kesalahan saat memuat ringkasan keuangan. Silakan coba lagi."
+      />
     );
   }
 
@@ -38,14 +64,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Saldo</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${totalBalance >= 0 ? '' : 'text-red-500'}`}>
+            <div className={`text-xl sm:text-2xl font-bold ${totalBalance >= 0 ? '' : 'text-red-500'}`}>
               {formatCurrency(totalBalance)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -62,7 +88,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-500">
+            <div className="text-xl sm:text-2xl font-bold text-green-500">
               +{formatCurrency(totalIncome)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -79,7 +105,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-500">
+            <div className="text-xl sm:text-2xl font-bold text-red-500">
               -{formatCurrency(totalExpense)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -166,25 +192,25 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           {recentTransactions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>Belum ada transaksi.</p>
-              <Link
-                to="/transactions"
-                className="text-primary hover:underline"
-              >
-                Tambah transaksi pertama Anda
-              </Link>
-            </div>
+            <EmptyState
+              icon="inbox"
+              title="Belum ada transaksi"
+              description="Mulai catat keuangan Anda dengan menambahkan transaksi pertama."
+              action={{
+                label: 'Tambah Transaksi',
+                onClick: () => window.location.href = '/transactions',
+              }}
+            />
           ) : (
             <div className="space-y-2">
               {recentTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent transition-colors gap-2 sm:gap-0"
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                         transaction.type === 'income'
                           ? 'bg-green-100 text-green-600'
                           : 'bg-red-100 text-red-600'
@@ -196,16 +222,16 @@ export default function DashboardPage() {
                         <ArrowUpRight className="h-5 w-5" />
                       )}
                     </div>
-                    <div>
-                      <p className="font-medium">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">
                         {transaction.category?.name ?? 'Tanpa Kategori'}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground truncate">
                         {transaction.description || '-'}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right pl-13 sm:pl-0">
                     <p
                       className={`font-semibold ${
                         transaction.type === 'income'

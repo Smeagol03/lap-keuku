@@ -7,7 +7,7 @@ export default function Layout() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <Sidebar />
-      <main className="md:pl-64">
+      <main className="md:pl-64 pb-20 md:pb-0">
         <div className="p-4 md:p-6">
           <Outlet />
         </div>
