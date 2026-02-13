@@ -12,6 +12,4 @@
     <priority>0.8</priority>
     <lastmod>2026-02-13</lastmod>
   </url>
-  <!-- Protected routes (dashboard, transactions, categories, reports, settings) are not included -->
-  <!-- as they require authentication and are not publicly indexable -->
 </urlset>
