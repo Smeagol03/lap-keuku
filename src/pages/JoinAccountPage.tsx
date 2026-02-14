@@ -58,13 +58,18 @@ export function JoinAccountPage() {
 
     setJoining(true);
     try {
-      await RBACService.joinWithInvite(code);
+      const { ownerId } = await RBACService.joinWithInvite(code);
+      
+      // Switch to the joined account
+      await RBACService.setActiveAccount(ownerId);
+      
       toast({
         title: 'Successfully joined!',
         description: `You now have access to ${inviteInfo?.owner_profile?.full_name}'s account.`,
       });
       navigate('/dashboard');
     } catch (error) {
+      console.error('Join error:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to join account',

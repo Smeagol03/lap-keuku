@@ -117,9 +117,39 @@ export function useSwitchAccount() {
     queryClient.invalidateQueries({ queryKey: ['transactions'] });
     queryClient.invalidateQueries({ queryKey: ['categories'] });
     queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    queryClient.invalidateQueries({ queryKey: ['reports'] });
   };
 
   return { switchAccount };
+}
+
+/**
+ * Hook untuk leave account
+ */
+export function useLeaveAccount() {
+  const queryClient = useQueryClient();
+  const { profile } = useAuthStore();
+
+  const leaveAccount = async (ownerId: string) => {
+    await RBACService.leaveAccount(ownerId);
+    
+    // Switch back to own account
+    if (profile?.id) {
+      await RBACService.setActiveAccount(profile.id);
+    }
+    
+    // Invalidate all queries
+    queryClient.invalidateQueries({ queryKey: ['activeAccount'] });
+    queryClient.invalidateQueries({ queryKey: ['currentRole'] });
+    queryClient.invalidateQueries({ queryKey: ['accessibleAccounts'] });
+    queryClient.invalidateQueries({ queryKey: ['joinedAccounts'] });
+    queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    queryClient.invalidateQueries({ queryKey: ['categories'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+  };
+
+  return { leaveAccount };
 }
 
 /**

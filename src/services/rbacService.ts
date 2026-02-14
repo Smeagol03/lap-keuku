@@ -96,7 +96,7 @@ export class RBACService {
   /**
    * Join menggunakan invitation code
    */
-  static async joinWithInvite(code: string): Promise<AccountMember> {
+  static async joinWithInvite(code: string): Promise<{ member: AccountMember; ownerId: string }> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
@@ -108,6 +108,7 @@ export class RBACService {
       .single();
 
     if (inviteError || !invite) {
+      console.error('Invite validation error:', inviteError);
       throw new Error('Invalid invitation code');
     }
 
@@ -143,9 +144,19 @@ export class RBACService {
         .select()
         .single();
 
-      if (error) throw error;
-      await this.incrementInviteUsage(invite.id, invite.used_count);
-      return data;
+      if (error) {
+        console.error('Failed to reactivate member:', error);
+        throw error;
+      }
+      
+      // Try to increment invite usage (non-critical if fails)
+      try {
+        await this.incrementInviteUsage(invite.id, invite.used_count);
+      } catch (e) {
+        console.warn('Failed to increment invite usage:', e);
+      }
+      
+      return { member: data, ownerId: invite.owner_id };
     }
 
     // 3. Create new member
@@ -162,12 +173,19 @@ export class RBACService {
       .select()
       .single();
 
-    if (memberError) throw memberError;
+    if (memberError) {
+      console.error('Failed to create member:', memberError);
+      throw memberError;
+    }
 
-    // 4. Update used_count
-    await this.incrementInviteUsage(invite.id, invite.used_count);
+    // 4. Update used_count (non-critical if fails)
+    try {
+      await this.incrementInviteUsage(invite.id, invite.used_count);
+    } catch (e) {
+      console.warn('Failed to increment invite usage:', e);
+    }
 
-    return member;
+    return { member, ownerId: invite.owner_id };
   }
 
   private static async incrementInviteUsage(inviteId: string, currentCount: number): Promise<void> {

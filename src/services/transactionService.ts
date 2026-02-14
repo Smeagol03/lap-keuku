@@ -9,13 +9,34 @@ export interface TransactionFilters {
   categoryId?: string;
 }
 
+/**
+ * Helper to get the active owner ID for data filtering
+ * This ensures data is filtered based on the currently active account
+ */
+async function getActiveOwnerId(): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  const { data: activeAccount } = await supabase
+    .from('active_account')
+    .select('active_owner_id')
+    .eq('user_id', user.id)
+    .single();
+
+  // If no active account set, default to user's own account
+  return activeAccount?.active_owner_id || user.id;
+}
+
 export async function getTransactions(filters?: TransactionFilters) {
+  const activeOwnerId = await getActiveOwnerId();
+
   let query = supabase
     .from('transactions')
     .select(`
       *,
       category:categories(*)
     `)
+    .eq('user_id', activeOwnerId)
     .order('date', { ascending: false });
 
   if (filters?.startDate) {
@@ -42,6 +63,7 @@ export async function getTransactionsPaginated(
   pageSize: number = 10,
   filters?: TransactionFilters
 ) {
+  const activeOwnerId = await getActiveOwnerId();
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
@@ -51,6 +73,7 @@ export async function getTransactionsPaginated(
       *,
       category:categories(*)
     `, { count: 'exact' })
+    .eq('user_id', activeOwnerId)
     .order('date', { ascending: false })
     .range(from, to);
 
@@ -92,13 +115,12 @@ export async function getTransaction(id: string) {
 }
 
 export async function createTransaction(transaction: TransactionFormData) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('User not authenticated');
+  const activeOwnerId = await getActiveOwnerId();
 
   const { data, error } = await supabase
     .from('transactions')
     .insert({
-      user_id: user.id,
+      user_id: activeOwnerId,
       ...transaction,
     })
     .select()
@@ -134,6 +156,7 @@ export async function deleteTransaction(id: string) {
 
 // Dashboard summary
 export async function getDashboardSummary() {
+  const activeOwnerId = await getActiveOwnerId();
   const now = new Date();
   const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
   const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
@@ -145,6 +168,7 @@ export async function getDashboardSummary() {
       *,
       category:categories(*)
     `)
+    .eq('user_id', activeOwnerId)
     .gte('date', monthStart)
     .lte('date', monthEnd)
     .order('date', { ascending: false });
@@ -168,6 +192,7 @@ export async function getDashboardSummary() {
       *,
       category:categories(*)
     `)
+    .eq('user_id', activeOwnerId)
     .order('date', { ascending: false })
     .limit(5);
 
@@ -183,12 +208,14 @@ export async function getDashboardSummary() {
 
 // Get monthly data for reports
 export async function getMonthlyData(year: number) {
+  const activeOwnerId = await getActiveOwnerId();
   const yearStart = format(startOfYear(new Date(year, 0, 1)), 'yyyy-MM-dd');
   const yearEnd = format(endOfYear(new Date(year, 0, 1)), 'yyyy-MM-dd');
 
   const { data, error } = await supabase
     .from('transactions')
     .select('amount, type, date')
+    .eq('user_id', activeOwnerId)
     .gte('date', yearStart)
     .lte('date', yearEnd);
 

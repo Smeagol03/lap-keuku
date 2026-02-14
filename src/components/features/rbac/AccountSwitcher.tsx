@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, ChevronsUpDown, Users } from 'lucide-react';
+import { Check, ChevronsUpDown, Users, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useActiveAccount, useAccessibleAccounts, useSwitchAccount } from '@/hooks/usePermissions';
+import { useActiveAccount, useAccessibleAccounts, useSwitchAccount, useLeaveAccount } from '@/hooks/usePermissions';
 import { useAuthStore } from '@/stores/authStore';
 import type { MemberRole } from '@/types/rbac';
 
@@ -46,15 +46,28 @@ export function AccountSwitcher({ compact = false }: AccountSwitcherProps) {
   const { data: activeAccount } = useActiveAccount();
   const { data: accounts = [], isLoading } = useAccessibleAccounts();
   const { switchAccount } = useSwitchAccount();
+  const { leaveAccount } = useLeaveAccount();
 
   const currentOwnerId = activeAccount?.active_owner_id || profile?.id;
   const currentAccount = accounts.find((a) => a.owner_id === currentOwnerId);
+  
+  // Check if current account is a joined account (not own account)
+  const isViewingJoinedAccount = currentAccount && currentAccount.role !== 'owner';
 
   const handleSelect = async (ownerId: string) => {
     if (ownerId !== currentOwnerId) {
       await switchAccount(ownerId);
     }
     setOpen(false);
+  };
+
+  const handleLeave = async () => {
+    if (!currentOwnerId || !isViewingJoinedAccount) return;
+    
+    if (confirm(`Are you sure you want to leave ${currentAccount?.profile.full_name}'s account? You will need a new invite to rejoin.`)) {
+      await leaveAccount(currentOwnerId);
+      setOpen(false);
+    }
   };
 
   if (isLoading || accounts.length === 0) {
@@ -155,6 +168,15 @@ export function AccountSwitcher({ compact = false }: AccountSwitcherProps) {
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup>
+              {isViewingJoinedAccount && (
+                <CommandItem
+                  onSelect={handleLeave}
+                  className="cursor-pointer text-destructive"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Leave this Account
+                </CommandItem>
+              )}
               <CommandItem
                 onSelect={() => {
                   setOpen(false);

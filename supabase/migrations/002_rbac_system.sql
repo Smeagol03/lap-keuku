@@ -118,6 +118,36 @@ ALTER TABLE active_account ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- =====================================================
+-- RLS for profiles (needed for member profile lookups)
+-- =====================================================
+
+-- User dapat melihat profile mereka sendiri
+CREATE POLICY IF NOT EXISTS "users_view_own_profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
+
+-- Owner dapat melihat profile member mereka
+CREATE POLICY IF NOT EXISTS "owners_view_member_profiles" ON profiles
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM account_members
+      WHERE account_members.member_id = profiles.id
+      AND account_members.owner_id = auth.uid()
+      AND account_members.status = 'active'
+    )
+  );
+
+-- Member dapat melihat profile owner yang mereka join
+CREATE POLICY IF NOT EXISTS "members_view_owner_profile" ON profiles
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM account_members
+      WHERE account_members.owner_id = profiles.id
+      AND account_members.member_id = auth.uid()
+      AND account_members.status = 'active'
+    )
+  );
+
+-- =====================================================
 -- RLS for account_members
 -- =====================================================
 

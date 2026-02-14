@@ -6,6 +6,7 @@ import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory 
 import CategoryFormDialog from '@/components/features/categories/CategoryFormDialog';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PermissionGuard } from '@/components/features/rbac/PermissionGuard';
 import type { Category } from '@/types';
 
 export default function CategoriesPage() {
@@ -57,10 +58,12 @@ export default function CategoriesPage() {
             Kelola kategori pemasukan dan pengeluaran
           </p>
         </div>
-        <Button onClick={handleCreate} className="w-full sm:w-auto">
-          <Plus className="mr-2 h-4 w-4" />
-          Tambah Kategori
-        </Button>
+        <PermissionGuard permissions={['canCreate']}>
+          <Button onClick={handleCreate} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
+            Tambah Kategori
+          </Button>
+        </PermissionGuard>
       </div>
 
       {isLoading ? (
@@ -116,23 +119,29 @@ export default function CategoriesPage() {
                         />
                         <span className="font-medium">{category.name}</span>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(category)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteConfirm(category.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <PermissionGuard permissions={['canEdit', 'canDelete']}>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <PermissionGuard permissions={['canEdit']}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEdit(category)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </PermissionGuard>
+                          <PermissionGuard permissions={['canDelete']}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeleteConfirm(category.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </PermissionGuard>
+                        </div>
+                      </PermissionGuard>
                     </div>
                   ))}
                 </div>
@@ -166,23 +175,29 @@ export default function CategoriesPage() {
                         />
                         <span className="font-medium">{category.name}</span>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(category)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteConfirm(category.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <PermissionGuard permissions={['canEdit', 'canDelete']}>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <PermissionGuard permissions={['canEdit']}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEdit(category)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </PermissionGuard>
+                          <PermissionGuard permissions={['canDelete']}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeleteConfirm(category.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </PermissionGuard>
+                        </div>
+                      </PermissionGuard>
                     </div>
                   ))}
                 </div>
