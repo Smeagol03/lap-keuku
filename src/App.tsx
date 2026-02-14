@@ -16,6 +16,8 @@ import TransactionsPage from '@/pages/TransactionsPage';
 import CategoriesPage from '@/pages/CategoriesPage';
 import ReportsPage from '@/pages/ReportsPage';
 import SettingsPage from '@/pages/SettingsPage';
+import { MemberManagementPage } from '@/pages/MemberManagementPage';
+import { JoinAccountPage } from '@/pages/JoinAccountPage';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -44,6 +46,8 @@ export default function App() {
               <Route path="/categories" element={<CategoriesPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/settings/members" element={<MemberManagementPage />} />
+              <Route path="/join" element={<JoinAccountPage />} />
             </Route>
           </Route>
 
