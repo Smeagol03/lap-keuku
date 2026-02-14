@@ -85,10 +85,10 @@ export function InviteList() {
             return (
               <div
                 key={invite.id}
-                className="flex items-center justify-between p-3 border rounded-lg"
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-3"
               >
-                <div className="flex items-center gap-3">
-                  <code className="px-3 py-1 bg-muted rounded font-mono text-sm">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <code className="px-3 py-1 bg-muted rounded font-mono text-sm break-all">
                     {invite.code}
                   </code>
                   <Badge className={roleColors[invite.role]}>
@@ -96,11 +96,11 @@ export function InviteList() {
                   </Badge>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
                   {invite.email && (
-                    <div className="flex items-center gap-1">
-                      <Mail className="h-3 w-3" />
-                      <span>{invite.email}</span>
+                    <div className="flex items-center gap-1 min-w-0">
+                      <Mail className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{invite.email}</span>
                     </div>
                   )}
 

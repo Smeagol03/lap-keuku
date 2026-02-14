@@ -175,10 +175,10 @@ export function MemberManagementPage() {
                 {members.map((member) => (
                   <div
                     key={member.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-3"
                   >
-                    <div className="flex items-center gap-3">
-                      <Avatar>
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <Avatar className="shrink-0">
                         <AvatarImage src={member.member_profile?.avatar_url} />
                         <AvatarFallback>
                           {member.member_profile?.full_name
@@ -186,22 +186,22 @@ export function MemberManagementPage() {
                             : '?'}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium truncate">
                             {member.member_profile?.full_name || 'Unknown'}
                           </span>
                           <Badge className={statusColors[member.status]}>
                             {member.status}
                           </Badge>
                         </div>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-muted-foreground truncate block">
                           {member.member_profile?.email}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between sm:justify-end gap-2 pl-10 sm:pl-0">
                       <Badge className={roleColors[member.role]}>
                         <span className="flex items-center gap-1">
                           {roleIcons[member.role]}
