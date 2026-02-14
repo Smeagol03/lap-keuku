@@ -6,10 +6,14 @@
   <br />
 </div>
 
-![Cuplikan Aplikasi FinTrack](https://user-images.githubusercontent.com/810438/222871783-ac522a10-272d-4180-87a4-16d773f32488.png)
-_Placeholder untuk cuplikan aplikasi Anda._
+## 📸 Tangkapan Layar
 
----
+![FinTrack Dashboard](public/dashboard.png)
+![FinTrack Kategori](public/kategori.png)
+![FinTrack Transaksi](public/transaksi.png)
+![FinTrack Laporan](public/laporan.png)
+![FinTrack Laporan2](public/laporan2.png)
+![FinTrack Laporan3](public/laporan3.png)
 
 ## ✨ Tentang FinTrack
 
@@ -79,7 +83,3 @@ npm run dev
 ```
 
 Aplikasi sekarang akan berjalan di `http://localhost:5173` (atau port lain yang tersedia).
-
-## 📄 Lisensi
-
-Proyek ini dilisensikan di bawah [Lisensi MIT](LICENSE).
