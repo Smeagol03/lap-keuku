@@ -15,6 +15,7 @@ import { useCategories } from '@/hooks/useCategories';
 import TransactionFormDialog from '@/components/features/transactions/TransactionFormDialog';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PermissionGuard } from '@/components/features/rbac/PermissionGuard';
 import type { Transaction } from '@/types';
 
 const formatCurrency = (amount: number) => {
@@ -92,10 +93,12 @@ export default function TransactionsPage() {
             Kelola pemasukan dan pengeluaran Anda
           </p>
         </div>
-        <Button onClick={handleCreate} className="w-full sm:w-auto">
-          <Plus className="mr-2 h-4 w-4" />
-          Tambah Transaksi
-        </Button>
+        <PermissionGuard permissions={['canCreate']}>
+          <Button onClick={handleCreate} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
+            Tambah Transaksi
+          </Button>
+        </PermissionGuard>
       </div>
 
       {/* Filters */}
@@ -223,21 +226,25 @@ export default function TransactionsPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(transaction)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteConfirm(transaction.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <PermissionGuard permissions={['canEdit']} disableInsteadOfHide>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(transaction)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </PermissionGuard>
+                      <PermissionGuard permissions={['canDelete']} disableInsteadOfHide>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteConfirm(transaction.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </PermissionGuard>
                     </div>
                   </div>
                 </div>

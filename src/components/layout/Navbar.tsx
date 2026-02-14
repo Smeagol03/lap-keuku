@@ -10,10 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, Settings, User } from 'lucide-react';
+import { LogOut, Settings, User, Users } from 'lucide-react';
+import { AccountSwitcher } from '@/components/features/rbac/AccountSwitcher';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function Navbar() {
   const { profile, signOut } = useAuth();
+  const { isOwner } = usePermissions();
 
   const handleSignOut = async () => {
     try {
@@ -39,6 +42,9 @@ export default function Navbar() {
         </Link>
 
         <div className="ml-auto flex items-center gap-4">
+          {/* Account Switcher */}
+          <AccountSwitcher compact />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -68,6 +74,17 @@ export default function Navbar() {
                   <span>Pengaturan</span>
                 </Link>
               </DropdownMenuItem>
+              {isOwner && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings/members">
+                      <Users className="mr-2 h-4 w-4" />
+                      <span>Kelola Member</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
