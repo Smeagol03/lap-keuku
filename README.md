@@ -1,75 +1,85 @@
-# React + TypeScript + Vite
+<div align="center">
+  <img src="public/logoBesar.png" alt="FinTrack Logo" width="150"/>
+  <h1>FinTrack</h1>
+  <p><strong>Catat keuanganmu dengan mudah dan cepat.</strong></p>
+  <p>Fokus pada tujuan finansialmu, biarkan FinTrack yang urus pencatatannya.</p>
+  <br />
+</div>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Cuplikan Aplikasi FinTrack](https://user-images.githubusercontent.com/810438/222871783-ac522a10-272d-4180-87a4-16d773f32488.png)
+_Placeholder untuk cuplikan aplikasi Anda._
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Tentang FinTrack
 
-## React Compiler
+FinTrack adalah aplikasi web modern yang dirancang untuk membantumu mengelola keuangan pribadi dengan cara yang paling sederhana. Lupakan kerumitan spreadsheet atau aplikasi yang membingungkan. Dengan antarmuka yang bersih dan intuitif, FinTrack membuat pencatatan transaksi harian, pemantauan pengeluaran, dan visualisasi arus kas menjadi aktivitas yang menyenangkan.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## 🚀 Fitur Unggulan
 
-Note: This will impact Vite dev & build performances.
+- **📊 Dashboard Interaktif:** Dapatkan ringkasan kondisi finansialmu dalam sekejap.
+- **💸 Pencatatan Transaksi Cepat:** Tambah pemasukan dan pengeluaran dalam hitungan detik.
+- **🗂️ Kategori Fleksibel:** Kelompokkan transaksimu dengan kategori yang bisa disesuaikan.
+- **📈 Laporan Visual:** Pahami kebiasaan belanjamu melalui grafik dan laporan yang mudah dibaca.
+- **🔐 Keamanan Terjamin:** Otentikasi aman dan data disimpan dengan Supabase.
+- **📱 Desain Responsif:** Akses dan catat keuanganmu dari perangkat apa pun, desktop maupun mobile.
 
-## Expanding the ESLint configuration
+## 🛠️ Teknologi yang Digunakan
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Frontend:** [React](https://react.dev/), [Vite](https://vitejs.dev/), [TypeScript](https://www.typescriptlang.org/)
+- **Backend & Database:** [Supabase](https://supabase.com/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **UI Components:** [shadcn/ui](https://ui.shadcn.com/)
+- **Manajemen State:** [Zustand](https://github.com/pmndrs/zustand) & [TanStack Query](https://tanstack.com/query)
+- **Routing:** [React Router](https://reactrouter.com/)
+- **Form:** [React Hook Form](https://react-hook-form.com/) & [Zod](https://zod.dev/)
+- **Visualisasi Data:** [Recharts](https://recharts.org/)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🏁 Panduan Memulai
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Ikuti langkah-langkah berikut untuk menjalankan FinTrack di lingkungan lokalmu.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Prasyarat
+
+- [Node.js](https://nodejs.org/) (v18 atau lebih baru)
+- [npm](https://www.npmjs.com/) atau [pnpm](https://pnpm.io/)
+- Akun gratis di [Supabase](https://supabase.com/)
+
+### 1. Clone Repositori
+
+```bash
+git clone https://github.com/NAMA_USER/NAMA_REPO.git
+cd NAMA_REPO
+```
+_Jangan lupa ganti `NAMA_USER/NAMA_REPO` dengan URL repositori Anda._
+
+### 2. Instal Dependensi
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 3. Konfigurasi Lingkungan Supabase
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Buat proyek baru di [dashboard Supabase](https://app.supabase.com/).
+- Pergi ke **Settings -> API**.
+- Buat file baru bernama `.env` di root proyek Anda.
+- Salin dan tempel isinya dari file `.env.example` (jika ada) atau tambahkan variabel berikut:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_SUPABASE_URL="URL_PROYEK_SUPABASE_ANDA"
+VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY="KUNCI_ANON_PUBLISHABLE_ANDA"
 ```
+- Ganti nilai di atas dengan URL Proyek dan kunci `anon`, `public` dari pengaturan API Supabase Anda.
+
+### 4. Jalankan Aplikasi
+
+```bash
+npm run dev
+```
+
+Aplikasi sekarang akan berjalan di `http://localhost:5173` (atau port lain yang tersedia).
+
+## 📄 Lisensi
+
+Proyek ini dilisensikan di bawah [Lisensi MIT](LICENSE).
