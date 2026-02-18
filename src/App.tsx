@@ -23,8 +23,11 @@ import { JoinAccountPage } from '@/pages/JoinAccountPage';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 0, // Always consider data stale to ensure fresh data on mount
+      gcTime: 1000 * 60 * 5, // Keep unused data in cache for 5 minutes (formerly cacheTime)
       retry: 1,
+      refetchOnMount: true, // Always refetch when component mounts
+      refetchOnWindowFocus: true, // Refetch when window regains focus
     },
   },
 });
