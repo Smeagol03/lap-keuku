@@ -30,8 +30,19 @@ export interface Transaction {
   date: string;
   created_at: string;
   updated_at: string;
+  // RAB relation
+  rab_id?: string | null;
+  rab_item_id?: string | null;
   // Joined relation
   category?: Category;
+  rab?: {
+    id: string;
+    name: string;
+  };
+  rab_item?: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface Budget {
@@ -61,6 +72,9 @@ export interface TransactionFormData {
   category_id: string | null;
   description: string;
   date: string;
+  // RAB relation (optional, only for expense)
+  rab_id?: string | null;
+  rab_item_id?: string | null;
 }
 
 export interface CategoryFormData {
@@ -88,3 +102,6 @@ export interface AuthState {
   loading: boolean;
   isAuthenticated: boolean;
 }
+
+// Re-export RAB types
+export * from './rab';

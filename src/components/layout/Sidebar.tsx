@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -8,6 +8,9 @@ import {
   Tags,
   Menu,
   X,
+  FileText,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -29,6 +32,21 @@ const navItems = [
     icon: Tags,
   },
   {
+    title: 'RAB',
+    href: '/rab',
+    icon: FileText,
+    children: [
+      {
+        title: 'Daftar RAB',
+        href: '/rab',
+      },
+      {
+        title: 'Katalog Item',
+        href: '/rab/templates',
+      },
+    ],
+  },
+  {
     title: 'Laporan',
     href: '/reports',
     icon: PieChart,
@@ -40,8 +58,105 @@ const navItems = [
   },
 ];
 
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children?: { title: string; href: string }[];
+}
+
+function NavItemContent({
+  item,
+  onClick,
+  isExpanded,
+  onToggleExpand,
+}: {
+  item: NavItem;
+  onClick?: () => void;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+}) {
+  const hasChildren = item.children && item.children.length > 0;
+
+  if (hasChildren) {
+    return (
+      <div>
+        <button
+          onClick={onToggleExpand}
+          className={cn(
+            'flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors w-full',
+            'text-muted-foreground hover:bg-muted hover:text-foreground'
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <item.icon className="h-4 w-4" />
+            {item.title}
+          </div>
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </button>
+        {isExpanded && (
+          <ul className="ml-4 mt-1 space-y-1">
+            {item.children!.map((child) => (
+              <li key={child.href}>
+                <NavLink
+                  to={child.href}
+                  end={child.href === '/rab'}
+                  onClick={onClick}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    )
+                  }
+                >
+                  {child.title}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <NavLink
+      to={item.href}
+      onClick={onClick}
+      className={({ isActive }) =>
+        cn(
+          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+          isActive
+            ? 'bg-primary text-primary-foreground'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+        )
+      }
+    >
+      <item.icon className="h-4 w-4" />
+      {item.title}
+    </NavLink>
+  );
+}
+
 export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
+  const [desktopExpanded, setDesktopExpanded] = useState(false);
+  const location = useLocation();
+
+  // Auto-expand RAB menu when on RAB-related pages
+  useEffect(() => {
+    if (location.pathname.startsWith('/rab')) {
+      setMobileExpanded(true);
+      setDesktopExpanded(true);
+    }
+  }, [location.pathname]);
 
   return (
     <>
@@ -84,21 +199,12 @@ export default function Sidebar() {
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.href}>
-                <NavLink
-                  to={item.href}
+                <NavItemContent
+                  item={item}
                   onClick={() => setMobileOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                      isActive
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    )
-                  }
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.title}
-                </NavLink>
+                  isExpanded={mobileExpanded}
+                  onToggleExpand={() => setMobileExpanded(!mobileExpanded)}
+                />
               </li>
             ))}
           </ul>
@@ -111,20 +217,11 @@ export default function Sidebar() {
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.href}>
-                <NavLink
-                  to={item.href}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                      isActive
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    )
-                  }
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.title}
-                </NavLink>
+                <NavItemContent
+                  item={item}
+                  isExpanded={desktopExpanded}
+                  onToggleExpand={() => setDesktopExpanded(!desktopExpanded)}
+                />
               </li>
             ))}
           </ul>
@@ -134,24 +231,29 @@ export default function Sidebar() {
       {/* Mobile bottom navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-30 bg-background border-t md:hidden">
         <ul className="flex justify-around py-2">
-          {navItems.slice(0, 5).map((item) => (
-            <li key={item.href}>
-              <NavLink
-                to={item.href}
-                className={({ isActive }) =>
-                  cn(
-                    'flex flex-col items-center gap-0.5 px-2 py-2 text-xs',
-                    isActive
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
-                  )
-                }
-              >
-                <item.icon className="h-auto w-4" />
-                <span className="text-[10px]">{item.title}</span>
-              </NavLink>
-            </li>
-          ))}
+          {navItems.slice(0, 5).map((item) => {
+            // For items with children, use the first child href
+            const href = item.children ? item.children[0].href : item.href;
+            return (
+              <li key={item.href}>
+                <NavLink
+                  to={href}
+                  end={href === '/rab'}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex flex-col items-center gap-0.5 px-2 py-2 text-xs',
+                      isActive
+                        ? 'text-primary'
+                        : 'text-muted-foreground'
+                    )
+                  }
+                >
+                  <item.icon className="h-auto w-4" />
+                  <span className="text-[10px]">{item.title}</span>
+                </NavLink>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </>
