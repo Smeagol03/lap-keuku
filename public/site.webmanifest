@@ -1,20 +1,57 @@
 {
-  "name": "FinTrack",
+  "name": "FinTrack — Catat Keuanganmu",
   "short_name": "FinTrack",
+  "description": "Aplikasi pencatatan keuangan sederhana untuk mengelola pemasukan, pengeluaran, dan laporan keuangan Anda",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#0ea5a4",
+  "categories": ["finance", "productivity"],
   "icons": [
     {
       "src": "/logoBesar.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/logoBesar.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/transaksi.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Buka dashboard keuangan",
+      "url": "/dashboard",
+      "icons": [{ "src": "/logoBesar.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Transaksi",
+      "short_name": "Transaksi",
+      "description": "Tambah transaksi baru",
+      "url": "/transactions",
+      "icons": [{ "src": "/logoBesar.png", "sizes": "192x192" }]
     }
   ]
 }

@@ -122,6 +122,8 @@ export async function createTransaction(transaction: TransactionFormData) {
     .insert({
       user_id: activeOwnerId,
       ...transaction,
+      rab_id: transaction.rab_id || null,
+      rab_item_id: transaction.rab_item_id || null,
     })
     .select()
     .single();
@@ -135,6 +137,8 @@ export async function updateTransaction(id: string, transaction: Partial<Transac
     .from('transactions')
     .update({
       ...transaction,
+      rab_id: transaction.rab_id || null,
+      rab_item_id: transaction.rab_item_id || null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

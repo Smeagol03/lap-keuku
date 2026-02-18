@@ -13,6 +13,7 @@ import {
 import { LogOut, Settings, User, Users } from 'lucide-react';
 import { AccountSwitcher } from '@/components/features/rbac/AccountSwitcher';
 import { usePermissions } from '@/hooks/usePermissions';
+import PWAInstallButton from '@/components/features/pwa/PWAInstallButton';
 
 export default function Navbar() {
   const { profile, signOut } = useAuth();
@@ -42,6 +43,9 @@ export default function Navbar() {
         </Link>
 
         <div className="ml-auto flex items-center gap-4">
+          {/* PWA Install Button */}
+          <PWAInstallButton />
+
           {/* Account Switcher */}
           <AccountSwitcher compact />
 
