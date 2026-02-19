@@ -6,9 +6,6 @@ import {
   createRAB,
   updateRAB,
   deleteRAB,
-  getRABAnalysis,
-  getRABItemsForTransaction,
-  getActiveRABList,
 } from '@/services/rabService';
 import type { RAB, RABFormData, RABFilters } from '@/types/rab';
 
@@ -168,37 +165,5 @@ export function useDeleteRAB() {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['rabs'] });
     },
-  });
-}
-
-/**
- * Hook untuk mengambil analisis RAB
- */
-export function useRABAnalysis(id: string) {
-  return useQuery({
-    queryKey: ['rab', 'analysis', id],
-    queryFn: () => getRABAnalysis(id),
-    enabled: !!id,
-  });
-}
-
-/**
- * Hook untuk mengambil RAB items untuk dropdown transaksi
- */
-export function useRABItems(rabId: string) {
-  return useQuery({
-    queryKey: ['rab', 'items', rabId],
-    queryFn: () => getRABItemsForTransaction(rabId),
-    enabled: !!rabId,
-  });
-}
-
-/**
- * Hook untuk mengambil daftar RAB aktif untuk dropdown
- */
-export function useActiveRABs() {
-  return useQuery({
-    queryKey: ['rabs', 'active'],
-    queryFn: getActiveRABList,
   });
 }

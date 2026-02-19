@@ -30,20 +30,6 @@ export interface RABItem {
   category?: Category;
 }
 
-export interface RABAnalysis {
-  rab: RAB;
-  totalRealization: number;
-  remainingBudget: number;
-  absorptionPercentage: number;
-  categoryBreakdown: {
-    category_id: string;
-    category_name: string;
-    budgeted: number;
-    realized: number;
-    remaining: number;
-  }[];
-}
-
 // Form types untuk create/update RAB
 export interface RABFormData {
   name: string;
@@ -95,4 +81,51 @@ export interface RABItemTemplateFilters {
   category_id?: string;
   search?: string;
   is_active?: boolean;
+}
+
+// RAB Progress Types (untuk tracking progress berbasis quantity)
+export interface RABProgressUpdate {
+  rab_item_id: string;
+  quantity_added: number;  // Quantity yang ditambahkan
+  description?: string;     // Catatan optional
+}
+
+export interface RABItemProgress {
+  item_id: string;
+  item_name: string;
+  category_id: string | null;
+  category_name?: string;
+  budgeted_quantity: number;
+  realized_quantity: number;
+  remaining_quantity: number;
+  unit: string;
+  price_per_unit: number;
+  budgeted_amount: number;
+  realized_amount: number;
+  absorption_percentage: number;
+  last_updated?: string;
+}
+
+export interface RABProgressSummary {
+  rab_id: string;
+  rab_name: string;
+  total_items: number;
+  completed_items: number;
+  overall_progress_percentage: number;
+  total_budgeted: number;
+  total_realized: number;
+  remaining_budget: number;
+}
+
+export interface RABProgressHistory {
+  id: string;
+  rab_item_id: string;
+  quantity_added: number;
+  description: string | null;
+  user_id: string;
+  created_at: string;
+  user?: {
+    name?: string;
+    email?: string;
+  };
 }
