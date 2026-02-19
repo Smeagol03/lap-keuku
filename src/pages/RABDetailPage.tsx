@@ -23,9 +23,13 @@ import {
   Clock,
   TrendingUp,
   TrendingDown,
+  Plus,
 } from 'lucide-react';
-import { useRAB, useRABAnalysis, useDeleteRAB, useUpdateRAB } from '@/hooks/useRABs';
+import { useRAB, useDeleteRAB, useUpdateRAB } from '@/hooks/useRABs';
+import { useRABItemProgress, useRABProgressSummary } from '@/hooks/useRABProgress';
 import RABFormDialog from '@/components/features/rab/RABFormDialog';
+import RABProgressDialog from '@/components/features/rab/RABProgressDialog';
+import RABProgressList from '@/components/features/rab/RABProgressList';
 import { SkeletonCard } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PermissionGuard } from '@/components/features/rbac/PermissionGuard';
@@ -58,10 +62,12 @@ export default function RABDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [progressDialogOpen, setProgressDialogOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const { data: rab, isLoading: rabLoading, isError: rabError } = useRAB(id!);
-  const { data: analysis, isLoading: analysisLoading } = useRABAnalysis(id!);
+  const { data: progressSummary, isLoading: summaryLoading } = useRABProgressSummary(id!);
+  const { data: itemProgress, isLoading: progressLoading } = useRABItemProgress(id!);
   const deleteMutation = useDeleteRAB();
   const updateMutation = useUpdateRAB();
 
@@ -79,7 +85,7 @@ export default function RABDetailPage() {
     window.print();
   };
 
-  const isLoading = rabLoading || analysisLoading;
+  const isLoading = rabLoading || summaryLoading || progressLoading;
 
   if (isLoading) {
     return (
@@ -101,9 +107,9 @@ export default function RABDetailPage() {
   }
 
   const totalBudget = rab.total_budget;
-  const totalRealization = analysis?.totalRealization ?? 0;
-  const remainingBudget = analysis?.remainingBudget ?? totalBudget;
-  const absorptionPercentage = analysis?.absorptionPercentage ?? 0;
+  const totalRealization = progressSummary?.total_realized ?? 0;
+  const remainingBudget = progressSummary?.remaining_budget ?? totalBudget;
+  const absorptionPercentage = progressSummary?.overall_progress_percentage ?? 0;
 
   // Determine status color for progress bar
   const getProgressColor = () => {
@@ -263,11 +269,11 @@ export default function RABDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Tabs: Items & Analysis */}
+        {/* Tabs: Items & Progress */}
         <Tabs defaultValue="items" className="space-y-4">
           <TabsList className="grid w-full grid-cols-2 max-w-md">
             <TabsTrigger value="items">Rincian Item</TabsTrigger>
-            <TabsTrigger value="analysis">Analisis Kategori</TabsTrigger>
+            <TabsTrigger value="analysis">Progres</TabsTrigger>
           </TabsList>
 
           {/* Items Tab */}
@@ -362,116 +368,30 @@ export default function RABDetailPage() {
             </Card>
           </TabsContent>
 
-          {/* Analysis Tab */}
+          {/* Analysis Tab - Now shows Progress */}
           <TabsContent value="analysis">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analisis per Kategori</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {analysis?.categoryBreakdown && analysis.categoryBreakdown.length > 0 ? (
-                  <>
-                    {/* Desktop Table */}
-                    <div className="hidden md:block overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Kategori</TableHead>
-                            <TableHead className="text-right">Anggaran</TableHead>
-                            <TableHead className="text-right">Realisasi</TableHead>
-                            <TableHead className="text-right">Selisih</TableHead>
-                            <TableHead className="text-right">Status</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {analysis.categoryBreakdown.map((cat) => (
-                            <TableRow key={cat.category_id}>
-                              <TableCell className="font-medium">
-                                {cat.category_name}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {formatCurrency(cat.budgeted)}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {formatCurrency(cat.realized)}
-                              </TableCell>
-                              <TableCell
-                                className={`text-right font-medium ${
-                                  cat.remaining < 0 ? 'text-red-500' : 'text-green-600'
-                                }`}
-                              >
-                                {cat.remaining >= 0 ? '+' : ''}
-                                {formatCurrency(cat.remaining)}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {cat.remaining < 0 ? (
-                                  <Badge variant="destructive">Over Budget</Badge>
-                                ) : cat.remaining === 0 ? (
-                                  <Badge variant="secondary">Pas</Badge>
-                                ) : (
-                                  <Badge variant="default" className="bg-green-500">
-                                    Under Budget
-                                  </Badge>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-
-                    {/* Mobile Cards */}
-                    <div className="md:hidden divide-y">
-                      {analysis.categoryBreakdown.map((cat) => (
-                        <div key={cat.category_id} className="p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <h4 className="font-medium">{cat.category_name}</h4>
-                            {cat.remaining < 0 ? (
-                              <Badge variant="destructive">Over Budget</Badge>
-                            ) : (
-                              <Badge variant="default" className="bg-green-500">
-                                Under Budget
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-3 gap-2 text-sm">
-                            <div>
-                              <p className="text-muted-foreground">Anggaran</p>
-                              <p className="font-medium">{formatCurrency(cat.budgeted)}</p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground">Realisasi</p>
-                              <p className="font-medium">{formatCurrency(cat.realized)}</p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground">Selisih</p>
-                              <p
-                                className={`font-medium ${
-                                  cat.remaining < 0 ? 'text-red-500' : 'text-green-600'
-                                }`}
-                              >
-                                {cat.remaining >= 0 ? '+' : ''}
-                                {formatCurrency(cat.remaining)}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <div className="p-8 text-center text-muted-foreground">
-                    <p>Belum ada data realisasi untuk dianalisis.</p>
-                    <p className="text-sm mt-1">
-                      Hubungkan transaksi pengeluaran ke RAB ini untuk melihat analisis.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              {/* Update Progress Button */}
+              <PermissionGuard permissions={['canEdit']}>
+                <Button onClick={() => setProgressDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Update Progres
+                </Button>
+              </PermissionGuard>
+              
+              {/* Progress List */}
+              <RABProgressList itemProgress={itemProgress || []} />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Progress Dialog */}
+      <RABProgressDialog
+        open={progressDialogOpen}
+        onOpenChange={setProgressDialogOpen}
+        rabId={id!}
+      />
 
       {/* Print Layout */}
       <div className="print-only print-container">

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { RAB, RABItem, RABFormData, RABFilters, RABAnalysis } from '@/types/rab';
+import type { RAB, RABFormData, RABFilters } from '@/types/rab';
 
 /**
  * Helper to get the active owner ID for data filtering
@@ -186,99 +186,4 @@ export async function updateRAB(id: string, formData: Partial<RABFormData>): Pro
 export async function deleteRAB(id: string): Promise<void> {
   const { error } = await supabase.from('rab').delete().eq('id', id);
   if (error) throw error;
-}
-
-/**
- * Menghitung perbandingan budget vs realisasi dari tabel transactions
- */
-export async function getRABAnalysis(id: string): Promise<RABAnalysis | null> {
-  const rab = await getRABDetail(id);
-  if (!rab) return null;
-
-  // Get all transactions linked to this RAB
-  const { data: transactions, error } = await supabase
-    .from('transactions')
-    .select('amount, rab_item_id, category_id')
-    .eq('rab_id', id)
-    .eq('type', 'expense');
-
-  if (error) throw error;
-
-  const totalRealization = transactions?.reduce(
-    (sum, t) => sum + Number(t.amount),
-    0
-  ) ?? 0;
-
-  const remainingBudget = rab.total_budget - totalRealization;
-  const absorptionPercentage = rab.total_budget > 0
-    ? (totalRealization / rab.total_budget) * 100
-    : 0;
-
-  // Category breakdown
-  const categoryMap = new Map<string, { budgeted: number; realized: number; name: string }>();
-
-  // Initialize with budgeted amounts from RAB items
-  rab.items?.forEach((item) => {
-    if (item.category_id && item.category) {
-      const existing = categoryMap.get(item.category_id) || { budgeted: 0, realized: 0, name: item.category.name };
-      existing.budgeted += item.total_price;
-      categoryMap.set(item.category_id, existing);
-    }
-  });
-
-  // Add realized amounts from transactions
-  transactions?.forEach((t) => {
-    if (t.category_id) {
-      const existing = categoryMap.get(t.category_id) || { budgeted: 0, realized: 0, name: 'Lainnya' };
-      existing.realized += Number(t.amount);
-      categoryMap.set(t.category_id, existing);
-    }
-  });
-
-  const categoryBreakdown = Array.from(categoryMap.entries()).map(([category_id, data]) => ({
-    category_id,
-    category_name: data.name,
-    budgeted: data.budgeted,
-    realized: data.realized,
-    remaining: data.budgeted - data.realized,
-  }));
-
-  return {
-    rab,
-    totalRealization,
-    remainingBudget,
-    absorptionPercentage,
-    categoryBreakdown,
-  };
-}
-
-/**
- * Get RAB items for dropdown in transaction form
- */
-export async function getRABItemsForTransaction(rabId: string): Promise<RABItem[]> {
-  const { data, error } = await supabase
-    .from('rab_items')
-    .select('*, category:categories(*)')
-    .eq('rab_id', rabId)
-    .order('name');
-
-  if (error) throw error;
-  return data as RABItem[];
-}
-
-/**
- * Get active RAB list for dropdown (only status = 'active')
- */
-export async function getActiveRABList(): Promise<RAB[]> {
-  const activeOwnerId = await getActiveOwnerId();
-
-  const { data, error } = await supabase
-    .from('rab')
-    .select('id, name, total_budget, status')
-    .eq('user_id', activeOwnerId)
-    .eq('status', 'active')
-    .order('name');
-
-  if (error) throw error;
-  return data as RAB[];
 }
