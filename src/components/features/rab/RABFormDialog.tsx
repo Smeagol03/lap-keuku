@@ -338,24 +338,24 @@ export default function RABFormDialog({
                     {fields.map((field, index) => (
                       <tr key={field.id} className="border-b">
                         <td className="py-2 px-2">
-                           <Input
-                             placeholder="Nama item"
-                             value={watchItems[index]?.name || ''}
-                             onChange={(e) => setValue(`items.${index}.name`, e.target.value)}
-                             className="h-8"
-                           />
-                           {errors.items?.[index]?.name && (
-                             <p className="text-xs text-destructive">
-                               {errors.items[index]?.name?.message}
-                             </p>
-                           )}
-                         </td>
+                          <Input
+                            placeholder="Nama item"
+                            value={watchItems[index]?.name || ""}
+                            onChange={(e) =>
+                              setValue(`items.${index}.name`, e.target.value)
+                            }
+                            className="h-8"
+                          />
+                          {errors.items?.[index]?.name && (
+                            <p className="text-xs text-destructive">
+                              {errors.items[index]?.name?.message}
+                            </p>
+                          )}
+                        </td>
                         <td className="py-2 px-2">
                           <div className="w-full">
                             <Select
-                              value={
-                                watchItems[index]?.category_id || undefined
-                              }
+                              value={watchItems[index]?.category_id || "none"}
                               onValueChange={(value) =>
                                 setValue(
                                   `items.${index}.category_id`,
@@ -389,16 +389,23 @@ export default function RABFormDialog({
                             type="number"
                             min="0.01"
                             step="0.01"
-                            value={watchItems[index]?.quantity || ''}
-                            onChange={(e) => setValue(`items.${index}.quantity`, parseFloat(e.target.value) || 0)}
+                            value={watchItems[index]?.quantity || ""}
+                            onChange={(e) =>
+                              setValue(
+                                `items.${index}.quantity`,
+                                parseFloat(e.target.value) || 0,
+                              )
+                            }
                             className="text-right h-8 w-20"
                           />
                         </td>
                         <td className="py-2 px-2">
                           <Input
                             placeholder="ls"
-                            value={watchItems[index]?.unit || ''}
-                            onChange={(e) => setValue(`items.${index}.unit`, e.target.value)}
+                            value={watchItems[index]?.unit || ""}
+                            onChange={(e) =>
+                              setValue(`items.${index}.unit`, e.target.value)
+                            }
                             className="h-8 w-24"
                           />
                         </td>
@@ -471,8 +478,10 @@ export default function RABFormDialog({
                       <Label className="text-xs">Nama Item *</Label>
                       <Input
                         placeholder="Nama item"
-                        value={watchItems[index]?.name || ''}
-                        onChange={(e) => setValue(`items.${index}.name`, e.target.value)}
+                        value={watchItems[index]?.name || ""}
+                        onChange={(e) =>
+                          setValue(`items.${index}.name`, e.target.value)
+                        }
                       />
                       {errors.items?.[index]?.name && (
                         <p className="text-xs text-destructive">
@@ -484,7 +493,7 @@ export default function RABFormDialog({
                     <div className="grid gap-2">
                       <Label className="text-xs">Kategori</Label>
                       <Select
-                        value={watchItems[index]?.category_id || undefined}
+                        value={watchItems[index]?.category_id || "none"}
                         onValueChange={(value) =>
                           setValue(
                             `items.${index}.category_id`,
@@ -520,16 +529,23 @@ export default function RABFormDialog({
                           type="number"
                           min="0.01"
                           step="0.01"
-                          value={watchItems[index]?.quantity || ''}
-                          onChange={(e) => setValue(`items.${index}.quantity`, parseFloat(e.target.value) || 0)}
+                          value={watchItems[index]?.quantity || ""}
+                          onChange={(e) =>
+                            setValue(
+                              `items.${index}.quantity`,
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
                         />
                       </div>
                       <div className="grid gap-2">
                         <Label className="text-xs">Satuan *</Label>
                         <Input
                           placeholder="ls"
-                          value={watchItems[index]?.unit || ''}
-                          onChange={(e) => setValue(`items.${index}.unit`, e.target.value)}
+                          value={watchItems[index]?.unit || ""}
+                          onChange={(e) =>
+                            setValue(`items.${index}.unit`, e.target.value)
+                          }
                         />
                       </div>
                     </div>

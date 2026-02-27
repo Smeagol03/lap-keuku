@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Dialog,
   DialogContent,
@@ -9,25 +9,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useCategories } from '@/hooks/useCategories';
-import type { RABItemTemplate } from '@/types/rab';
+} from "@/components/ui/select";
+import { useCategories } from "@/hooks/useCategories";
+import type { RABItemTemplate } from "@/types/rab";
 
 const itemTemplateSchema = z.object({
   category_id: z.string().nullable(),
-  name: z.string().min(1, 'Nama item harus diisi'),
-  unit: z.string().min(1, 'Satuan harus diisi'),
-  default_price: z.number().min(0, 'Harga tidak boleh negatif'),
+  name: z.string().min(1, "Nama item harus diisi"),
+  unit: z.string().min(1, "Satuan harus diisi"),
+  default_price: z.number().min(0, "Harga tidak boleh negatif"),
   description: z.string().optional(),
 });
 
@@ -42,14 +42,14 @@ interface RABItemTemplateDialogProps {
 
 // Format number to Indonesian locale string
 const formatNumberInput = (value: number): string => {
-  if (value === 0) return '';
-  return value.toLocaleString('id-ID');
+  if (value === 0) return "";
+  return value.toLocaleString("id-ID");
 };
 
 // Parse Indonesian formatted number
 const parseFormattedNumber = (value: string): number => {
   if (!value) return 0;
-  const digitsOnly = value.replace(/[^\d]/g, '');
+  const digitsOnly = value.replace(/[^\d]/g, "");
   return parseInt(digitsOnly, 10) || 0;
 };
 
@@ -62,7 +62,8 @@ export default function RABItemTemplateDialog({
   const [loading, setLoading] = useState(false);
 
   const { data: categories } = useCategories();
-  const expenseCategories = categories?.filter((c) => c.type === 'expense') ?? [];
+  const expenseCategories =
+    categories?.filter((c) => c.type === "expense") ?? [];
 
   const {
     register,
@@ -75,10 +76,10 @@ export default function RABItemTemplateDialog({
     resolver: zodResolver(itemTemplateSchema),
     defaultValues: {
       category_id: null,
-      name: '',
-      unit: '',
+      name: "",
+      unit: "",
       default_price: 0,
-      description: '',
+      description: "",
     },
   });
 
@@ -91,15 +92,15 @@ export default function RABItemTemplateDialog({
           name: template.name,
           unit: template.unit,
           default_price: template.default_price,
-          description: template.description || '',
+          description: template.description || "",
         });
       } else {
         reset({
           category_id: null,
-          name: '',
-          unit: '',
+          name: "",
+          unit: "",
           default_price: 0,
-          description: '',
+          description: "",
         });
       }
     }
@@ -112,7 +113,7 @@ export default function RABItemTemplateDialog({
       onOpenChange(false);
       reset();
     } catch (error) {
-      console.error('Error saving item template:', error);
+      console.error("Error saving item template:", error);
     } finally {
       setLoading(false);
     }
@@ -120,7 +121,7 @@ export default function RABItemTemplateDialog({
 
   const handlePriceChange = (value: string) => {
     const numericValue = parseFormattedNumber(value);
-    setValue('default_price', numericValue);
+    setValue("default_price", numericValue);
   };
 
   return (
@@ -128,12 +129,12 @@ export default function RABItemTemplateDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {template ? 'Edit Item Template' : 'Tambah Item Template Baru'}
+            {template ? "Edit Item Template" : "Tambah Item Template Baru"}
           </DialogTitle>
           <DialogDescription>
             {template
-              ? 'Edit informasi item template ini'
-              : 'Isi form di bawah untuk membuat item template baru'}
+              ? "Edit informasi item template ini"
+              : "Isi form di bawah untuk membuat item template baru"}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)}>
@@ -143,24 +144,30 @@ export default function RABItemTemplateDialog({
               <Input
                 id="name"
                 placeholder="Contoh: Semen Portland"
-                {...register('name')}
+                {...register("name")}
               />
               {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
             <div className="grid gap-2">
               <Label htmlFor="category">Kategori</Label>
               <Select
-                value={watch('category_id') ?? undefined}
-                onValueChange={(value) => setValue('category_id', value || null)}
+                value={watch("category_id") || "none"}
+                onValueChange={(value) =>
+                  setValue("category_id", value === "none" ? null : value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih kategori" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem key="none" value="none">Tidak ada kategori</SelectItem>
+                  <SelectItem key="none" value="none">
+                    Tidak ada kategori
+                  </SelectItem>
                   {expenseCategories
                     .filter((cat) => cat.id)
                     .map((cat, idx) => (
@@ -178,10 +185,12 @@ export default function RABItemTemplateDialog({
                 <Input
                   id="unit"
                   placeholder="Contoh: pcs, m2, ls"
-                  {...register('unit')}
+                  {...register("unit")}
                 />
                 {errors.unit && (
-                  <p className="text-sm text-destructive">{errors.unit.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.unit.message}
+                  </p>
                 )}
               </div>
 
@@ -192,11 +201,13 @@ export default function RABItemTemplateDialog({
                   type="text"
                   inputMode="numeric"
                   placeholder="0"
-                  value={formatNumberInput(watch('default_price') || 0)}
+                  value={formatNumberInput(watch("default_price") || 0)}
                   onChange={(e) => handlePriceChange(e.target.value)}
                 />
                 {errors.default_price && (
-                  <p className="text-sm text-destructive">{errors.default_price.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.default_price.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -206,7 +217,7 @@ export default function RABItemTemplateDialog({
               <Input
                 id="description"
                 placeholder="Deskripsi tambahan tentang item"
-                {...register('description')}
+                {...register("description")}
               />
             </div>
           </div>
@@ -220,8 +231,12 @@ export default function RABItemTemplateDialog({
             >
               Batal
             </Button>
-            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-              {loading ? 'Menyimpan...' : template ? 'Simpan' : 'Tambah'}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full sm:w-auto"
+            >
+              {loading ? "Menyimpan..." : template ? "Simpan" : "Tambah"}
             </Button>
           </DialogFooter>
         </form>
