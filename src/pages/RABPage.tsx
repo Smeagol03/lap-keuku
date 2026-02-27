@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { format } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -13,41 +13,50 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Plus, Pencil, Trash2, Eye, Search, FileText, Package } from 'lucide-react';
+} from "@/components/ui/table";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Eye,
+  Search,
+  FileText,
+  Package,
+} from "lucide-react";
 import {
   useRABs,
   useCreateRAB,
   useUpdateRAB,
   useDeleteRAB,
-} from '@/hooks/useRABs';
-import RABFormDialog from '@/components/features/rab/RABFormDialog';
-import { SkeletonList } from '@/components/ui/skeleton';
-import { EmptyState } from '@/components/ui/empty-state';
-import { PermissionGuard } from '@/components/features/rbac/PermissionGuard';
-import Seo from '@/components/Seo';
-import type { RAB, RABFormData, RABStatus } from '@/types/rab';
+} from "@/hooks/useRABs";
+import { useDebounce } from "@/hooks/useDebounce";
+import RABFormDialog from "@/components/features/rab/RABFormDialog";
+import { SkeletonList } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PermissionGuard } from "@/components/features/rbac/PermissionGuard";
+import Seo from "@/components/Seo";
+import type { RAB, RABFormData, RABStatus } from "@/types/rab";
 
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
     minimumFractionDigits: 0,
   }).format(amount);
 };
 
 const statusColors: Record<RABStatus, string> = {
-  draft: 'bg-gray-500',
-  active: 'bg-green-500',
-  completed: 'bg-blue-500',
-  cancelled: 'bg-red-500',
+  draft: "bg-gray-500",
+  active: "bg-green-500",
+  completed: "bg-blue-500",
+  cancelled: "bg-red-500",
 };
 
 const statusLabels: Record<RABStatus, string> = {
-  draft: 'Draft',
-  active: 'Aktif',
-  completed: 'Selesai',
-  cancelled: 'Dibatalkan',
+  draft: "Draft",
+  active: "Aktif",
+  completed: "Selesai",
+  cancelled: "Dibatalkan",
 };
 
 export default function RABPage() {
@@ -55,13 +64,19 @@ export default function RABPage() {
   const [editingRAB, setEditingRAB] = useState<RAB | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [filters, setFilters] = useState({
-    status: '',
-    search: '',
+    status: "",
+    search: "",
   });
 
-  const { data: rabs, isLoading, isError } = useRABs({
+  const debouncedSearch = useDebounce(filters.search, 500);
+
+  const {
+    data: rabs,
+    isLoading,
+    isError,
+  } = useRABs({
     status: filters.status as RABStatus | undefined,
-    search: filters.search || undefined,
+    search: debouncedSearch || undefined,
   });
 
   const createMutation = useCreateRAB();
@@ -83,7 +98,7 @@ export default function RABPage() {
       await deleteMutation.mutateAsync(id);
       setDeleteConfirm(null);
     } catch (error) {
-      console.error('Error deleting RAB:', error);
+      console.error("Error deleting RAB:", error);
     }
   };
 
@@ -142,7 +157,7 @@ export default function RABPage() {
                 Katalog Item
               </Button>
             </Link>
-            <PermissionGuard permissions={['canCreate']}>
+            <PermissionGuard permissions={["canCreate"]}>
               <Button onClick={handleCreate} className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 Tambah RAB
@@ -166,7 +181,9 @@ export default function RABPage() {
                     id="search"
                     placeholder="Cari nama proyek..."
                     value={filters.search}
-                    onChange={(e) => handleFilterChange('search', e.target.value)}
+                    onChange={(e) =>
+                      handleFilterChange("search", e.target.value)
+                    }
                     className="pl-9"
                   />
                 </div>
@@ -177,7 +194,7 @@ export default function RABPage() {
                   id="status"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   value={filters.status}
-                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                  onChange={(e) => handleFilterChange("status", e.target.value)}
                 >
                   <option value="">Semua</option>
                   <option value="draft">Draft</option>
@@ -210,7 +227,7 @@ export default function RABPage() {
                     <TableRow key={rab.id}>
                       <TableCell className="font-medium">{rab.name}</TableCell>
                       <TableCell className="max-w-xs truncate">
-                        {rab.description || '-'}
+                        {rab.description || "-"}
                       </TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(rab.total_budget)}
@@ -221,7 +238,7 @@ export default function RABPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {format(new Date(rab.created_at), 'dd MMM yyyy')}
+                        {format(new Date(rab.created_at), "dd MMM yyyy")}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -230,7 +247,7 @@ export default function RABPage() {
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <PermissionGuard permissions={['canEdit']}>
+                          <PermissionGuard permissions={["canEdit"]}>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -239,7 +256,7 @@ export default function RABPage() {
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </PermissionGuard>
-                          <PermissionGuard permissions={['canDelete']}>
+                          <PermissionGuard permissions={["canDelete"]}>
                             {deleteConfirm === rab.id ? (
                               <Button
                                 variant="destructive"
@@ -272,7 +289,7 @@ export default function RABPage() {
                 <p className="text-muted-foreground">
                   Mulai buat rencana anggaran biaya untuk proyek Anda
                 </p>
-                <PermissionGuard permissions={['canCreate']}>
+                <PermissionGuard permissions={["canCreate"]}>
                   <Button onClick={handleCreate} className="mt-4">
                     <Plus className="mr-2 h-4 w-4" />
                     Tambah RAB
@@ -293,7 +310,7 @@ export default function RABPage() {
                     <div>
                       <h3 className="font-medium">{rab.name}</h3>
                       <p className="text-sm text-muted-foreground line-clamp-1">
-                        {rab.description || 'Tidak ada deskripsi'}
+                        {rab.description || "Tidak ada deskripsi"}
                       </p>
                     </div>
                     <Badge className={statusColors[rab.status]}>
@@ -302,14 +319,20 @@ export default function RABPage() {
                   </div>
 
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm text-muted-foreground">Total Budget</span>
-                    <span className="font-bold">{formatCurrency(rab.total_budget)}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Total Budget
+                    </span>
+                    <span className="font-bold">
+                      {formatCurrency(rab.total_budget)}
+                    </span>
                   </div>
 
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-sm text-muted-foreground">Dibuat</span>
+                    <span className="text-sm text-muted-foreground">
+                      Dibuat
+                    </span>
                     <span className="text-sm">
-                      {format(new Date(rab.created_at), 'dd MMM yyyy')}
+                      {format(new Date(rab.created_at), "dd MMM yyyy")}
                     </span>
                   </div>
 
@@ -320,7 +343,7 @@ export default function RABPage() {
                         Detail
                       </Button>
                     </Link>
-                    <PermissionGuard permissions={['canEdit']}>
+                    <PermissionGuard permissions={["canEdit"]}>
                       <Button
                         variant="outline"
                         size="icon"
@@ -329,7 +352,7 @@ export default function RABPage() {
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </PermissionGuard>
-                    <PermissionGuard permissions={['canDelete']}>
+                    <PermissionGuard permissions={["canDelete"]}>
                       <Button
                         variant="outline"
                         size="icon"
@@ -343,7 +366,9 @@ export default function RABPage() {
                   {/* Delete Confirmation */}
                   {deleteConfirm === rab.id && (
                     <div className="mt-3 p-3 bg-destructive/10 rounded-lg">
-                      <p className="text-sm mb-2">Yakin ingin menghapus RAB ini?</p>
+                      <p className="text-sm mb-2">
+                        Yakin ingin menghapus RAB ini?
+                      </p>
                       <div className="flex gap-2">
                         <Button
                           variant="destructive"
@@ -374,7 +399,7 @@ export default function RABPage() {
                 <p className="text-muted-foreground">
                   Mulai buat rencana anggaran biaya untuk proyek Anda
                 </p>
-                <PermissionGuard permissions={['canCreate']}>
+                <PermissionGuard permissions={["canCreate"]}>
                   <Button onClick={handleCreate} className="mt-4">
                     <Plus className="mr-2 h-4 w-4" />
                     Tambah RAB
