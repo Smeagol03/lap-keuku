@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,6 +59,44 @@ const statusLabels: Record<RABStatus, string> = {
   cancelled: "Dibatalkan",
 };
 
+function DebouncedSearchInput({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+}) {
+  const [localValue, setLocalValue] = useState(value);
+  const debouncedValue = useDebounce(localValue, 500);
+
+  // Sync dengan value eksternal jika berubah dari luar (contoh: direset)
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  // Panggil onChange hanya saat debouncedValue berubah
+  useEffect(() => {
+    if (debouncedValue !== value) {
+      onChange(debouncedValue);
+    }
+  }, [debouncedValue, onChange, value]);
+
+  return (
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Input
+        id="search"
+        placeholder={placeholder}
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        className="pl-9"
+      />
+    </div>
+  );
+}
+
 export default function RABPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRAB, setEditingRAB] = useState<RAB | null>(null);
@@ -68,15 +106,13 @@ export default function RABPage() {
     search: "",
   });
 
-  const debouncedSearch = useDebounce(filters.search, 500);
-
   const {
     data: rabs,
     isLoading,
     isError,
   } = useRABs({
     status: filters.status as RABStatus | undefined,
-    search: debouncedSearch || undefined,
+    search: filters.search || undefined,
   });
 
   const createMutation = useCreateRAB();
@@ -175,18 +211,11 @@ export default function RABPage() {
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               <div className="grid gap-2">
                 <Label htmlFor="search">Cari</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="search"
-                    placeholder="Cari nama proyek..."
-                    value={filters.search}
-                    onChange={(e) =>
-                      handleFilterChange("search", e.target.value)
-                    }
-                    className="pl-9"
-                  />
-                </div>
+                <DebouncedSearchInput
+                  placeholder="Cari nama proyek..."
+                  value={filters.search}
+                  onChange={(val) => handleFilterChange("search", val)}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="status">Status</Label>
