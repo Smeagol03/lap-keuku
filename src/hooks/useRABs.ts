@@ -44,13 +44,20 @@ export function useCreateRAB() {
       const previousRABs = queryClient.getQueryData<RAB[]>(['rabs']);
 
       if (previousRABs) {
+        const subtotal = newRAB.items.reduce((sum, item) => sum + item.quantity * item.price_per_unit, 0);
+        const taxRate = newRAB.tax_rate || 0;
+        const taxAmount = (subtotal * taxRate) / 100;
+        const grandTotal = subtotal + taxAmount;
+
         const optimisticRAB: RAB = {
           id: `temp-${Date.now()}`,
           user_id: '',
           name: newRAB.name,
           description: newRAB.description || null,
           status: newRAB.status,
-          total_budget: newRAB.items.reduce((sum, item) => sum + item.quantity * item.price_per_unit, 0),
+          tax_rate: taxRate,
+          tax_amount: taxAmount,
+          total_budget: grandTotal,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           items: [],

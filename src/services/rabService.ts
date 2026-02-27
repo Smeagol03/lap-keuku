@@ -79,11 +79,16 @@ export async function getRABDetail(id: string): Promise<RAB | null> {
 export async function createRAB(formData: RABFormData): Promise<RAB> {
   const activeOwnerId = await getActiveOwnerId();
 
-  // Calculate total budget from items
-  const totalBudget = formData.items.reduce(
+  // Calculate subtotal from items
+  const subtotal = formData.items.reduce(
     (sum, item) => sum + item.quantity * item.price_per_unit,
     0
   );
+
+  // Calculate tax and grand total
+  const taxRate = formData.tax_rate || 0;
+  const taxAmount = (subtotal * taxRate) / 100;
+  const grandTotal = subtotal + taxAmount;
 
   // Insert RAB header
   const { data: rab, error: rabError } = await supabase
@@ -93,7 +98,9 @@ export async function createRAB(formData: RABFormData): Promise<RAB> {
       name: formData.name,
       description: formData.description || null,
       status: formData.status,
-      total_budget: totalBudget,
+      tax_rate: taxRate,
+      tax_amount: taxAmount,
+      total_budget: grandTotal,
     })
     .select()
     .single();
@@ -132,12 +139,15 @@ export async function createRAB(formData: RABFormData): Promise<RAB> {
  */
 export async function updateRAB(id: string, formData: Partial<RABFormData>): Promise<RAB> {
   console.log('updateRAB called with:', { id, formData });
-  
-  // Calculate total budget if items provided
-  const totalBudget = formData.items?.reduce(
-    (sum, item) => sum + item.quantity * item.price_per_unit,
-    0
-  );
+
+  // Calculate subtotal if items provided
+  let subtotal: number | undefined;
+  if (formData.items) {
+    subtotal = formData.items.reduce(
+      (sum, item) => sum + item.quantity * item.price_per_unit,
+      0
+    );
+  }
 
   // Update RAB header
   const updateData: Record<string, unknown> = {
@@ -146,7 +156,33 @@ export async function updateRAB(id: string, formData: Partial<RABFormData>): Pro
   if (formData.name) updateData.name = formData.name;
   if (formData.description !== undefined) updateData.description = formData.description || null;
   if (formData.status) updateData.status = formData.status;
-  if (totalBudget !== undefined) updateData.total_budget = totalBudget;
+
+  // Calculate new tax_amount and grandTotal if items or tax_rate changed
+  if (subtotal !== undefined || formData.tax_rate !== undefined) {
+    // We need to fetch current rab to know previous subtotal/tax_rate if only one of them is provided
+    let currentTaxRate = formData.tax_rate;
+    let currentSubtotal = subtotal;
+
+    if (currentTaxRate === undefined || currentSubtotal === undefined) {
+      const { data: currentRab } = await supabase.from('rab').select('tax_rate, total_budget, tax_amount').eq('id', id).single();
+      if (currentRab) {
+        if (currentTaxRate === undefined) currentTaxRate = currentRab.tax_rate;
+        if (currentSubtotal === undefined) {
+          // Backward calculation to find exact subtotal: grandTotal = subtotal + taxAmount <=> subtotal = grandTotal - taxAmount
+          currentSubtotal = currentRab.total_budget - currentRab.tax_amount;
+        }
+      }
+    }
+
+    const finalTaxRate = currentTaxRate || 0;
+    const finalSubtotal = currentSubtotal || 0;
+    const finalTaxAmount = (finalSubtotal * finalTaxRate) / 100;
+    const finalGrandTotal = finalSubtotal + finalTaxAmount;
+
+    updateData.tax_rate = finalTaxRate;
+    updateData.tax_amount = finalTaxAmount;
+    updateData.total_budget = finalGrandTotal;
+  }
 
   console.log('Updating RAB header:', updateData);
 
@@ -163,7 +199,7 @@ export async function updateRAB(id: string, formData: Partial<RABFormData>): Pro
   // Update items if provided
   if (formData.items) {
     console.log('Processing items update...');
-    
+
     // Get existing items to determine which to update, insert, or delete
     const { data: existingItems, error: fetchError } = await supabase
       .from('rab_items')
@@ -178,7 +214,7 @@ export async function updateRAB(id: string, formData: Partial<RABFormData>): Pro
     console.log('Existing items:', existingItems);
 
     const existingIds = new Set(existingItems?.map((item) => item.id) || []);
-    
+
     // Get form item IDs (only those that have valid string IDs)
     const formIds = new Set(
       formData.items
@@ -192,7 +228,7 @@ export async function updateRAB(id: string, formData: Partial<RABFormData>): Pro
     // Items to delete (exist in DB but not in form)
     const idsToDelete = [...existingIds].filter((itemId) => !formIds.has(itemId));
     console.log('IDs to delete:', idsToDelete);
-    
+
     if (idsToDelete.length > 0) {
       const { error: deleteError } = await supabase
         .from('rab_items')
@@ -222,7 +258,7 @@ export async function updateRAB(id: string, formData: Partial<RABFormData>): Pro
         price_per_unit: item.price_per_unit,
       };
       console.log(`Updating item ${item.id}:`, updatePayload);
-      
+
       const { error: updateError } = await supabase
         .from('rab_items')
         .update(updatePayload)

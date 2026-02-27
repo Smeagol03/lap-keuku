@@ -11,6 +11,8 @@ export interface RAB {
   description: string | null;
   status: RABStatus;
   total_budget: number;
+  tax_rate: number;
+  tax_amount: number;
   created_at: string;
   updated_at: string;
   items?: RABItem[];
@@ -35,6 +37,7 @@ export interface RABFormData {
   name: string;
   description: string;
   status: RABStatus;
+  tax_rate: number;
   items: RABItemFormData[];
 }
 

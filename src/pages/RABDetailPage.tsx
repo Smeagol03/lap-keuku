@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -11,8 +11,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft,
   Pencil,
@@ -24,38 +24,41 @@ import {
   TrendingUp,
   TrendingDown,
   Plus,
-} from 'lucide-react';
-import { useRAB, useDeleteRAB, useUpdateRAB } from '@/hooks/useRABs';
-import { useRABItemProgress, useRABProgressSummary } from '@/hooks/useRABProgress';
-import RABFormDialog from '@/components/features/rab/RABFormDialog';
-import RABProgressDialog from '@/components/features/rab/RABProgressDialog';
-import RABProgressList from '@/components/features/rab/RABProgressList';
-import { SkeletonCard } from '@/components/ui/skeleton';
-import { EmptyState } from '@/components/ui/empty-state';
-import { PermissionGuard } from '@/components/features/rbac/PermissionGuard';
-import Seo from '@/components/Seo';
-import type { RABFormData, RABStatus } from '@/types';
+} from "lucide-react";
+import { useRAB, useDeleteRAB, useUpdateRAB } from "@/hooks/useRABs";
+import {
+  useRABItemProgress,
+  useRABProgressSummary,
+} from "@/hooks/useRABProgress";
+import RABFormDialog from "@/components/features/rab/RABFormDialog";
+import RABProgressDialog from "@/components/features/rab/RABProgressDialog";
+import RABProgressList from "@/components/features/rab/RABProgressList";
+import { SkeletonCard } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PermissionGuard } from "@/components/features/rbac/PermissionGuard";
+import Seo from "@/components/Seo";
+import type { RABFormData, RABStatus } from "@/types";
 
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
     minimumFractionDigits: 0,
   }).format(amount);
 };
 
 const statusColors: Record<RABStatus, string> = {
-  draft: 'bg-gray-500',
-  active: 'bg-green-500',
-  completed: 'bg-blue-500',
-  cancelled: 'bg-red-500',
+  draft: "bg-gray-500",
+  active: "bg-green-500",
+  completed: "bg-blue-500",
+  cancelled: "bg-red-500",
 };
 
 const statusLabels: Record<RABStatus, string> = {
-  draft: 'Draft',
-  active: 'Aktif',
-  completed: 'Selesai',
-  cancelled: 'Dibatalkan',
+  draft: "Draft",
+  active: "Aktif",
+  completed: "Selesai",
+  cancelled: "Dibatalkan",
 };
 
 export default function RABDetailPage() {
@@ -66,8 +69,11 @@ export default function RABDetailPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const { data: rab, isLoading: rabLoading, isError: rabError } = useRAB(id!);
-  const { data: progressSummary, isLoading: summaryLoading } = useRABProgressSummary(id!);
-  const { data: itemProgress, isLoading: progressLoading } = useRABItemProgress(id!);
+  const { data: progressSummary, isLoading: summaryLoading } =
+    useRABProgressSummary(id!);
+  const { data: itemProgress, isLoading: progressLoading } = useRABItemProgress(
+    id!,
+  );
   const deleteMutation = useDeleteRAB();
   const updateMutation = useUpdateRAB();
 
@@ -75,9 +81,9 @@ export default function RABDetailPage() {
     if (!id) return;
     try {
       await deleteMutation.mutateAsync(id);
-      navigate('/rab');
+      navigate("/rab");
     } catch (error) {
-      console.error('Error deleting RAB:', error);
+      console.error("Error deleting RAB:", error);
     }
   };
 
@@ -107,15 +113,20 @@ export default function RABDetailPage() {
   }
 
   const totalBudget = rab.total_budget;
+  const taxAmount = rab.tax_amount || 0;
+  const taxRate = rab.tax_rate || 0;
+  const subTotal = totalBudget - taxAmount;
+
   const totalRealization = progressSummary?.total_realized ?? 0;
   const remainingBudget = progressSummary?.remaining_budget ?? totalBudget;
-  const absorptionPercentage = progressSummary?.overall_progress_percentage ?? 0;
+  const absorptionPercentage =
+    progressSummary?.overall_progress_percentage ?? 0;
 
   // Determine status color for progress bar
   const getProgressColor = () => {
-    if (absorptionPercentage > 100) return 'bg-red-500';
-    if (absorptionPercentage > 80) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (absorptionPercentage > 100) return "bg-red-500";
+    if (absorptionPercentage > 80) return "bg-yellow-500";
+    return "bg-green-500";
   };
 
   return (
@@ -131,7 +142,7 @@ export default function RABDetailPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate('/rab')}
+              onClick={() => navigate("/rab")}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -145,7 +156,7 @@ export default function RABDetailPage() {
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                {rab.description || 'Tidak ada deskripsi'}
+                {rab.description || "Tidak ada deskripsi"}
               </p>
             </div>
           </div>
@@ -154,13 +165,13 @@ export default function RABDetailPage() {
               <Printer className="h-4 w-4 mr-2" />
               Cetak
             </Button>
-            <PermissionGuard permissions={['canEdit']}>
+            <PermissionGuard permissions={["canEdit"]}>
               <Button variant="outline" onClick={() => setDialogOpen(true)}>
                 <Pencil className="h-4 w-4 mr-2" />
                 Edit
               </Button>
             </PermissionGuard>
-            <PermissionGuard permissions={['canDelete']}>
+            <PermissionGuard permissions={["canDelete"]}>
               {deleteConfirm ? (
                 <Button
                   variant="destructive"
@@ -185,16 +196,36 @@ export default function RABDetailPage() {
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Anggaran</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Anggaran
+              </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-xl sm:text-2xl font-bold">
-                {formatCurrency(totalBudget)}
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Subtotal:</span>
+                  <span className="font-medium">
+                    {formatCurrency(subTotal)}
+                  </span>
+                </div>
+                {taxRate > 0 && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">
+                      Pajak ({taxRate}%):
+                    </span>
+                    <span className="font-medium">
+                      +{formatCurrency(taxAmount)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2 border-t mt-2">
+                  <span className="font-bold text-sm">Grand Total:</span>
+                  <span className="text-xl sm:text-2xl font-bold text-primary">
+                    {formatCurrency(totalBudget)}
+                  </span>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {rab.items?.length || 0} item anggaran
-              </p>
             </CardContent>
           </Card>
 
@@ -210,7 +241,7 @@ export default function RABDetailPage() {
             <CardContent>
               <div
                 className={`text-xl sm:text-2xl font-bold ${
-                  absorptionPercentage > 100 ? 'text-red-500' : ''
+                  absorptionPercentage > 100 ? "text-red-500" : ""
                 }`}
               >
                 {formatCurrency(totalRealization)}
@@ -223,7 +254,9 @@ export default function RABDetailPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Sisa Anggaran</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Sisa Anggaran
+              </CardTitle>
               {remainingBudget < 0 ? (
                 <TrendingDown className="h-4 w-4 text-red-500" />
               ) : (
@@ -233,13 +266,13 @@ export default function RABDetailPage() {
             <CardContent>
               <div
                 className={`text-xl sm:text-2xl font-bold ${
-                  remainingBudget < 0 ? 'text-red-500' : ''
+                  remainingBudget < 0 ? "text-red-500" : ""
                 }`}
               >
                 {formatCurrency(remainingBudget)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {remainingBudget < 0 ? 'Over budget!' : 'Tersisa'}
+                {remainingBudget < 0 ? "Over budget!" : "Tersisa"}
               </p>
             </CardContent>
           </Card>
@@ -251,7 +284,9 @@ export default function RABDetailPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Penyerapan Anggaran</span>
-                <span className="font-medium">{absorptionPercentage.toFixed(1)}%</span>
+                <span className="font-medium">
+                  {absorptionPercentage.toFixed(1)}%
+                </span>
               </div>
               <div className="h-4 bg-muted rounded-full overflow-hidden">
                 <div
@@ -262,7 +297,10 @@ export default function RABDetailPage() {
               {absorptionPercentage > 100 && (
                 <div className="flex items-center gap-2 text-red-500 text-sm">
                   <AlertTriangle className="h-4 w-4" />
-                  <span>Realisasi melebihi anggaran sebesar {formatCurrency(Math.abs(remainingBudget))}</span>
+                  <span>
+                    Realisasi melebihi anggaran sebesar{" "}
+                    {formatCurrency(Math.abs(remainingBudget))}
+                  </span>
                 </div>
               )}
             </div>
@@ -301,21 +339,27 @@ export default function RABDetailPage() {
                       {rab.items?.map((item, index) => (
                         <TableRow key={item.id}>
                           <TableCell>{index + 1}</TableCell>
-                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell className="font-medium">
+                            {item.name}
+                          </TableCell>
                           <TableCell>
                             {item.category ? (
                               <div className="flex items-center gap-2">
                                 <div
                                   className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: item.category.color }}
+                                  style={{
+                                    backgroundColor: item.category.color,
+                                  }}
                                 />
                                 {item.category.name}
                               </div>
                             ) : (
-                              '-'
+                              "-"
                             )}
                           </TableCell>
-                          <TableCell className="text-right">{item.quantity}</TableCell>
+                          <TableCell className="text-right">
+                            {item.quantity}
+                          </TableCell>
                           <TableCell>{item.unit}</TableCell>
                           <TableCell className="text-right">
                             {formatCurrency(item.price_per_unit)}
@@ -343,18 +387,23 @@ export default function RABDetailPage() {
                     <div key={item.id} className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <span className="text-xs text-muted-foreground">#{index + 1}</span>
+                          <span className="text-xs text-muted-foreground">
+                            #{index + 1}
+                          </span>
                           <h4 className="font-medium">{item.name}</h4>
                         </div>
-                        <span className="font-bold">{formatCurrency(item.total_price)}</span>
+                        <span className="font-bold">
+                          {formatCurrency(item.total_price)}
+                        </span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
                         <div>
                           <span>Kategori: </span>
-                          {item.category ? item.category.name : '-'}
+                          {item.category ? item.category.name : "-"}
                         </div>
                         <div className="text-right">
-                          {item.quantity} {item.unit} × {formatCurrency(item.price_per_unit)}
+                          {item.quantity} {item.unit} ×{" "}
+                          {formatCurrency(item.price_per_unit)}
                         </div>
                       </div>
                     </div>
@@ -372,13 +421,13 @@ export default function RABDetailPage() {
           <TabsContent value="analysis">
             <div className="space-y-4">
               {/* Update Progress Button */}
-              <PermissionGuard permissions={['canEdit']}>
+              <PermissionGuard permissions={["canEdit"]}>
                 <Button onClick={() => setProgressDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Update Progres
                 </Button>
               </PermissionGuard>
-              
+
               {/* Progress List */}
               <RABProgressList itemProgress={itemProgress || []} />
             </div>
@@ -415,7 +464,10 @@ export default function RABDetailPage() {
         <div className="print-header">
           <h1 className="text-2xl font-bold">{rab.name}</h1>
           <p className="text-muted-foreground">{rab.description}</p>
-          <p className="text-sm">Status: {statusLabels[rab.status]} | Tanggal Cetak: {format(new Date(), 'dd MMMM yyyy')}</p>
+          <p className="text-sm">
+            Status: {statusLabels[rab.status]} | Tanggal Cetak:{" "}
+            {format(new Date(), "dd MMMM yyyy")}
+          </p>
         </div>
 
         <div className="print-summary mt-6">
@@ -423,16 +475,42 @@ export default function RABDetailPage() {
           <table className="w-full border-collapse border border-gray-300">
             <tbody>
               <tr>
-                <td className="border border-gray-300 p-2">Total Anggaran</td>
-                <td className="border border-gray-300 p-2 text-right">{formatCurrency(totalBudget)}</td>
+                <td className="border border-gray-300 p-2">Subtotal</td>
+                <td className="border border-gray-300 p-2 text-right">
+                  {formatCurrency(subTotal)}
+                </td>
+              </tr>
+              {taxRate > 0 && (
+                <tr>
+                  <td className="border border-gray-300 p-2">
+                    Pajak ({taxRate}%)
+                  </td>
+                  <td className="border border-gray-300 p-2 text-right">
+                    {formatCurrency(taxAmount)}
+                  </td>
+                </tr>
+              )}
+              <tr>
+                <td className="border border-gray-300 p-2 font-bold">
+                  Total Anggaran
+                </td>
+                <td className="border border-gray-300 p-2 text-right font-bold">
+                  {formatCurrency(totalBudget)}
+                </td>
               </tr>
               <tr>
                 <td className="border border-gray-300 p-2">Total Realisasi</td>
-                <td className="border border-gray-300 p-2 text-right">{formatCurrency(totalRealization)}</td>
+                <td className="border border-gray-300 p-2 text-right">
+                  {formatCurrency(totalRealization)}
+                </td>
               </tr>
               <tr>
-                <td className="border border-gray-300 p-2 font-bold">Sisa Anggaran</td>
-                <td className="border border-gray-300 p-2 text-right font-bold">{formatCurrency(remainingBudget)}</td>
+                <td className="border border-gray-300 p-2 font-bold">
+                  Sisa Anggaran
+                </td>
+                <td className="border border-gray-300 p-2 text-right font-bold">
+                  {formatCurrency(remainingBudget)}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -447,7 +525,9 @@ export default function RABDetailPage() {
                 <th className="border border-gray-300 p-2 text-left">Item</th>
                 <th className="border border-gray-300 p-2 text-right">Qty</th>
                 <th className="border border-gray-300 p-2 text-left">Satuan</th>
-                <th className="border border-gray-300 p-2 text-right">Harga/Unit</th>
+                <th className="border border-gray-300 p-2 text-right">
+                  Harga/Unit
+                </th>
                 <th className="border border-gray-300 p-2 text-right">Total</th>
               </tr>
             </thead>
@@ -456,15 +536,52 @@ export default function RABDetailPage() {
                 <tr key={item.id}>
                   <td className="border border-gray-300 p-2">{index + 1}</td>
                   <td className="border border-gray-300 p-2">{item.name}</td>
-                  <td className="border border-gray-300 p-2 text-right">{item.quantity}</td>
+                  <td className="border border-gray-300 p-2 text-right">
+                    {item.quantity}
+                  </td>
                   <td className="border border-gray-300 p-2">{item.unit}</td>
-                  <td className="border border-gray-300 p-2 text-right">{formatCurrency(item.price_per_unit)}</td>
-                  <td className="border border-gray-300 p-2 text-right">{formatCurrency(item.total_price)}</td>
+                  <td className="border border-gray-300 p-2 text-right">
+                    {formatCurrency(item.price_per_unit)}
+                  </td>
+                  <td className="border border-gray-300 p-2 text-right">
+                    {formatCurrency(item.total_price)}
+                  </td>
                 </tr>
               ))}
               <tr className="bg-gray-100">
-                <td colSpan={5} className="border border-gray-300 p-2 text-right font-bold">Total</td>
-                <td className="border border-gray-300 p-2 text-right font-bold">{formatCurrency(totalBudget)}</td>
+                <td
+                  colSpan={5}
+                  className="border border-gray-300 p-2 text-right font-medium"
+                >
+                  Subtotal
+                </td>
+                <td className="border border-gray-300 p-2 text-right font-medium">
+                  {formatCurrency(subTotal)}
+                </td>
+              </tr>
+              {taxRate > 0 && (
+                <tr className="bg-gray-100">
+                  <td
+                    colSpan={5}
+                    className="border border-gray-300 p-2 text-right font-medium"
+                  >
+                    Pajak ({taxRate}%)
+                  </td>
+                  <td className="border border-gray-300 p-2 text-right font-medium">
+                    {formatCurrency(taxAmount)}
+                  </td>
+                </tr>
+              )}
+              <tr className="bg-gray-200">
+                <td
+                  colSpan={5}
+                  className="border border-gray-300 p-2 text-right font-bold"
+                >
+                  Grand Total
+                </td>
+                <td className="border border-gray-300 p-2 text-right font-bold">
+                  {formatCurrency(totalBudget)}
+                </td>
               </tr>
             </tbody>
           </table>

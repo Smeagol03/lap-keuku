@@ -39,6 +39,7 @@ const rabSchema = z.object({
   name: z.string().min(1, "Nama proyek harus diisi"),
   description: z.string(),
   status: z.enum(["draft", "active", "completed", "cancelled"]),
+  tax_rate: z.number().min(0, "Pajak tidak boleh negatif"),
   items: z.array(rabItemSchema).min(1, "Minimal harus ada 1 item"),
 });
 
@@ -91,6 +92,7 @@ export default function RABFormDialog({
       name: "",
       description: "",
       status: "draft",
+      tax_rate: 0,
       items: [
         {
           template_id: null,
@@ -125,10 +127,13 @@ export default function RABFormDialog({
   });
 
   // Calculate total budget
-  const totalBudget = watchItems.reduce(
+  const subtotal = watchItems.reduce(
     (sum, item) => sum + (item.quantity || 0) * (item.price_per_unit || 0),
     0,
   );
+  const taxRate = watch("tax_rate") || 0;
+  const taxAmount = (subtotal * taxRate) / 100;
+  const grandTotal = subtotal + taxAmount;
 
   // Reset form when dialog opens with RAB data
   useEffect(() => {
@@ -138,6 +143,7 @@ export default function RABFormDialog({
           name: rab.name,
           description: rab.description || "",
           status: rab.status,
+          tax_rate: rab.tax_rate || 0,
           items: rab.items?.map((item) => ({
             id: item.id,
             template_id: item.template_id || null,
@@ -162,6 +168,7 @@ export default function RABFormDialog({
           name: "",
           description: "",
           status: "draft",
+          tax_rate: 0,
           items: [
             {
               template_id: null,
@@ -267,13 +274,38 @@ export default function RABFormDialog({
               </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="description">Deskripsi (opsional)</Label>
-              <Input
-                id="description"
-                placeholder="Keterangan tambahan tentang proyek"
-                {...register("description")}
-              />
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="description">Deskripsi (opsional)</Label>
+                <Input
+                  id="description"
+                  placeholder="Keterangan tambahan tentang proyek"
+                  {...register("description")}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="tax_rate">Pajak (%)</Label>
+                <div className="relative">
+                  <Input
+                    id="tax_rate"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    placeholder="0"
+                    {...register("tax_rate", { valueAsNumber: true })}
+                    className="pr-8"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    %
+                  </span>
+                </div>
+                {errors.tax_rate && (
+                  <p className="text-sm text-destructive">
+                    {errors.tax_rate.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Items Section */}
@@ -590,19 +622,44 @@ export default function RABFormDialog({
                 </Button>
               </div>
 
-              {/* Total Budget */}
-              <div className="flex justify-end pt-4 border-t">
-                <div className="text-right">
-                  <Label className="text-sm text-muted-foreground">
-                    Total Anggaran
-                  </Label>
-                  <p className="text-xl font-bold">
+              {/* Total Budget Summary */}
+              <div className="flex flex-col items-end pt-4 border-t space-y-2">
+                <div className="flex justify-between w-full sm:w-64">
+                  <span className="text-sm text-muted-foreground">
+                    Subtotal
+                  </span>
+                  <span className="font-medium">
                     {new Intl.NumberFormat("id-ID", {
                       style: "currency",
                       currency: "IDR",
                       minimumFractionDigits: 0,
-                    }).format(totalBudget)}
-                  </p>
+                    }).format(subtotal)}
+                  </span>
+                </div>
+
+                {taxRate > 0 && (
+                  <div className="flex justify-between w-full sm:w-64 text-muted-foreground">
+                    <span className="text-sm">Pajak ({taxRate}%)</span>
+                    <span className="text-sm">
+                      +{" "}
+                      {new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                        minimumFractionDigits: 0,
+                      }).format(taxAmount)}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-between w-full sm:w-64 pt-2 border-t">
+                  <span className="font-medium">Grand Total</span>
+                  <span className="text-xl font-bold text-primary">
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                      minimumFractionDigits: 0,
+                    }).format(grandTotal)}
+                  </span>
                 </div>
               </div>
             </div>
