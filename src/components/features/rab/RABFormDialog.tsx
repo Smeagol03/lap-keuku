@@ -147,7 +147,7 @@ export default function RABFormDialog({
           items: rab.items?.map((item) => ({
             id: item.id,
             template_id: item.template_id || null,
-            category_id: item.category_id,
+            category_id: item.category_id || null,
             name: item.name,
             quantity: item.quantity,
             unit: item.unit,
@@ -187,11 +187,17 @@ export default function RABFormDialog({
   const handleFormSubmit = async (data: RABFormValues) => {
     setLoading(true);
     try {
-      await onSubmit(data);
+      // Add timeout to prevent hanging (30 seconds max)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout - Request terlalu lama")), 30000)
+      );
+      await Promise.race([onSubmit(data), timeoutPromise]);
       onOpenChange(false);
       reset();
     } catch (error) {
       console.error("Error saving RAB:", error);
+      // Re-throw error so parent can handle it (toast notification)
+      throw error;
     } finally {
       setLoading(false);
     }

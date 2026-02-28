@@ -102,17 +102,18 @@ export async function createRAB(formData: RABFormData): Promise<RAB> {
       tax_amount: taxAmount,
       total_budget: grandTotal,
     })
-    .select()
+    .select('*')
     .single();
 
   if (rabError) throw rabError;
+  if (!rab) throw new Error('Failed to create RAB');
 
   // Insert RAB items
   if (formData.items.length > 0) {
     const itemsToInsert = formData.items.map((item) => ({
       rab_id: rab.id,
       template_id: item.template_id || null,
-      category_id: item.category_id,
+      category_id: item.category_id || null,
       name: item.name,
       quantity: item.quantity,
       unit: item.unit,
@@ -130,7 +131,21 @@ export async function createRAB(formData: RABFormData): Promise<RAB> {
     }
   }
 
-  return getRABDetail(rab.id) as Promise<RAB>;
+  // Return created RAB with items (without complex join for better performance)
+  return {
+    ...rab,
+    items: formData.items.map((item, index) => ({
+      id: `temp-${index}`,
+      rab_id: rab.id,
+      template_id: item.template_id || null,
+      category_id: item.category_id || null,
+      name: item.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      price_per_unit: item.price_per_unit,
+      total_price: item.quantity * item.price_per_unit,
+    })),
+  } as RAB;
 }
 
 /**
@@ -251,7 +266,7 @@ export async function updateRAB(id: string, formData: Partial<RABFormData>): Pro
     for (const item of itemsToUpdate) {
       const updatePayload = {
         template_id: item.template_id || null,
-        category_id: item.category_id,
+        category_id: item.category_id || null,
         name: item.name,
         quantity: item.quantity,
         unit: item.unit,
@@ -274,7 +289,7 @@ export async function updateRAB(id: string, formData: Partial<RABFormData>): Pro
       const insertData = itemsToInsert.map((item) => ({
         rab_id: id,
         template_id: item.template_id || null,
-        category_id: item.category_id,
+        category_id: item.category_id || null,
         name: item.name,
         quantity: item.quantity,
         unit: item.unit,
@@ -295,7 +310,8 @@ export async function updateRAB(id: string, formData: Partial<RABFormData>): Pro
   }
 
   console.log('RAB update completed successfully');
-  return getRABDetail(id) as Promise<RAB>;
+  // Return minimal data - React Query will refetch detail via invalidateQueries
+  return { id } as RAB;
 }
 
 /**
