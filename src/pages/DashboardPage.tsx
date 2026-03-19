@@ -87,7 +87,7 @@ export default function DashboardPage() {
                 {formatCurrency(totalBalance)}
               </div>
               <p className="text-xs text-muted-foreground">
-                Saldo bersih bulan ini
+                Total saldo keseluruhan
               </p>
             </CardContent>
           </Card>
@@ -179,8 +179,8 @@ export default function DashboardPage() {
                   </p>
                 ) : totalBalance > 0 ? (
                   <p className="text-green-600">
-                    ✨ Bagus! Anda berhasil menabung{" "}
-                    {formatCurrency(totalBalance)} bulan ini.
+                    ✨ Bagus! Total saldo Anda{" "}
+                    {formatCurrency(totalBalance)}.
                   </p>
                 ) : (
                   <p>

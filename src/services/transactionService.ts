@@ -165,42 +165,65 @@ export async function getDashboardSummary() {
   const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
   const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
 
-  // Get all transactions for current month
-  const { data: transactions, error } = await supabase
-    .from('transactions')
-    .select(`
-      *,
-      category:categories(*)
-    `)
-    .eq('user_id', activeOwnerId)
-    .gte('date', monthStart)
-    .lte('date', monthEnd)
-    .order('date', { ascending: false });
+  // Jalankan semua query secara paralel untuk optimasi performa
+  const [
+    { data: monthTransactions, error: monthError },
+    { data: allTransactions, error: allError },
+    { data: recentTransactions, error: recentError },
+  ] = await Promise.all([
+    // Query 1: Get all transactions for current month (for income/expense calculation)
+    supabase
+      .from('transactions')
+      .select(`
+        *,
+        category:categories(*)
+      `)
+      .eq('user_id', activeOwnerId)
+      .gte('date', monthStart)
+      .lte('date', monthEnd)
+      .order('date', { ascending: false }),
+    
+    // Query 2: Get ALL transactions to calculate cumulative balance (saldo akumulatif)
+    supabase
+      .from('transactions')
+      .select('type, amount')
+      .eq('user_id', activeOwnerId),
+    
+    // Query 3: Get recent transactions (last 5)
+    supabase
+      .from('transactions')
+      .select(`
+        *,
+        category:categories(*)
+      `)
+      .eq('user_id', activeOwnerId)
+      .order('date', { ascending: false })
+      .limit(5),
+  ]);
 
-  if (error) throw error;
+  if (monthError) throw monthError;
+  if (allError) throw allError;
+  if (recentError) throw recentError;
 
-  const totalIncome = transactions
+  // Calculate monthly income and expense
+  const totalIncome = monthTransactions
     ?.filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + Number(t.amount), 0) ?? 0;
 
-  const totalExpense = transactions
+  const totalExpense = monthTransactions
     ?.filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + Number(t.amount), 0) ?? 0;
 
-  const totalBalance = totalIncome - totalExpense;
+  // Calculate cumulative balance from all time
+  const allIncome = allTransactions
+    ?.filter((t) => t.type === 'income')
+    .reduce((sum, t) => sum + Number(t.amount), 0) ?? 0;
 
-  // Get recent transactions (last 5)
-  const { data: recentTransactions, error: recentError } = await supabase
-    .from('transactions')
-    .select(`
-      *,
-      category:categories(*)
-    `)
-    .eq('user_id', activeOwnerId)
-    .order('date', { ascending: false })
-    .limit(5);
+  const allExpense = allTransactions
+    ?.filter((t) => t.type === 'expense')
+    .reduce((sum, t) => sum + Number(t.amount), 0) ?? 0;
 
-  if (recentError) throw recentError;
+  const totalBalance = allIncome - allExpense;
 
   return {
     totalBalance,

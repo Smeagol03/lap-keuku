@@ -317,7 +317,7 @@ export default function ReportsPage() {
                       }
                     />
                     <Tooltip
-                      formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''}
+                      formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value)}
                       labelStyle={{ color: '#000' }}
                     />
                     <Legend />
@@ -354,7 +354,7 @@ export default function ReportsPage() {
                       }
                     />
                     <Tooltip
-                      formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''}
+                      formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value)}
                       labelStyle={{ color: '#000' }}
                     />
                     <Legend />

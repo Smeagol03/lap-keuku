@@ -173,8 +173,11 @@ export function useDeleteTransaction() {
 }
 
 export function useDashboardSummary() {
+  // Include current month in queryKey to auto-refresh when month changes
+  const currentMonth = new Date().toISOString().slice(0, 7); // Format: "2024-03"
+  
   return useQuery({
-    queryKey: ['dashboard', 'summary'],
+    queryKey: ['dashboard', 'summary', currentMonth],
     queryFn: getDashboardSummary,
   });
 }

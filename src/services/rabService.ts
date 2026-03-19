@@ -262,25 +262,29 @@ export async function updateRAB(id: string, formData: Partial<RABFormData>): Pro
     console.log('Items to update:', itemsToUpdate);
     console.log('Items to insert:', itemsToInsert);
 
-    // Update existing items
-    for (const item of itemsToUpdate) {
-      const updatePayload = {
+    // Update existing items - menggunakan batch upsert untuk menghindari N+1 query
+    if (itemsToUpdate.length > 0) {
+      const upsertData = itemsToUpdate.map((item) => ({
+        id: item.id,
+        rab_id: id,
         template_id: item.template_id || null,
         category_id: item.category_id || null,
         name: item.name,
         quantity: item.quantity,
         unit: item.unit,
         price_per_unit: item.price_per_unit,
-      };
-      console.log(`Updating item ${item.id}:`, updatePayload);
+        updated_at: new Date().toISOString(),
+      }));
 
-      const { error: updateError } = await supabase
+      console.log('Batch upserting items:', upsertData);
+
+      const { error: upsertError } = await supabase
         .from('rab_items')
-        .update(updatePayload)
-        .eq('id', item.id);
-      if (updateError) {
-        console.error(`Error updating item ${item.id}:`, updateError);
-        throw updateError;
+        .upsert(upsertData);
+
+      if (upsertError) {
+        console.error('Error batch upserting items:', upsertError);
+        throw upsertError;
       }
     }
 

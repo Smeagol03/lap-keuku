@@ -104,13 +104,18 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 1000, // Meningkatkan batas warning ke 1000kb
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            return 'vendor'; // Memisahkan semua library luar ke file vendor.js
+            return 'vendor';
           }
         },
+        // Optimasi nama file chunk
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash][extname]',
       },
     },
   },
